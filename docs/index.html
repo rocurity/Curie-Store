@@ -75,6 +75,8 @@ function icon(a){
     const x=hue(a.id);e.style.background=`linear-gradient(145deg,hsl(${x} 75% 58%),hsl(${(x+40)%360} 70% 42%))`;return e};
   const src=safeIcon(a.icon);if(!src)return letter();
   const i=h('img',{class:'icon',src,alt:'',loading:'lazy'});i.onerror=()=>i.replaceWith(letter());return i}
+const CATS=['tools','productivity','media','games','social','education','security'];
+const cap=t=>t[0].toUpperCase()+t.slice(1);
 let apps=[],cat='';
 function render(){
   const q=$('q').value.toLowerCase(),g=$('grid');g.replaceChildren();
@@ -90,7 +92,7 @@ function show(a){
       h('button',{class:'x','aria-label':'Close',onclick:()=>d.close()},'✕')),
     h('a',{class:'install',href:safeApk(l.apkUrl),rel:'noopener'},'Install'),
     h('div',{class:'stats'},h('div',{},h('b',{},l.version),h('span',{},'Version')),
-      h('div',{},h('b',{},mb(l.sizeBytes)),h('span',{},'Size')),h('div',{},h('b',{},a.category),h('span',{},'Category'))),
+      h('div',{},h('b',{},mb(l.sizeBytes)),h('span',{},'Size')),h('div',{},h('b',{},cap(a.category)),h('span',{},'Category'))),
     a.description?h('p',{},a.description):'',
     h('h3',{},'Permissions'),
     perms.length?h('div',{class:'perms'},perms.map(p=>h('span',{},p))):h('div',{class:'sub'},'None'),
@@ -100,10 +102,9 @@ function show(a){
 }
 $('dlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 function chips(){
-  const cats=[...new Set(apps.map(a=>a.category))].sort(),box=$('chips');box.replaceChildren();
-  if(cats.length<2)return;
+  const cats=[...new Set([...CATS,...apps.map(a=>a.category)])],box=$('chips');box.replaceChildren();
   for(const c of ['',...cats])box.append(h('button',{class:'chip','aria-pressed':String(c===cat),
-    onclick:()=>{cat=c;chips();render()}},c||'All'));
+    onclick:()=>{cat=c;chips();render()}},c?cap(c):'All'));
 }
 fetch('store.json').then(r=>r.json()).then(s=>{apps=s.apps;chips();render()})
   .catch(()=>$('grid').append(h('p',{class:'empty'},'Store unavailable')));
