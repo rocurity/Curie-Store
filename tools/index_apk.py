@@ -7,7 +7,7 @@ Usage:
 
 Needs aapt2 and apksigner (Android SDK build-tools) on PATH.
 """
-import argparse, hashlib, json, re, subprocess, sys, datetime, pathlib
+import argparse, hashlib, json, re, subprocess, sys, datetime, pathlib, zipfile
 
 def run(cmd):
     r = subprocess.run(cmd, capture_output=True, text=True)
@@ -45,6 +45,15 @@ if old and old["latest"]["certSha256"] != cert and not a.allow_key_change:
 if old and vcode <= old["latest"]["versionCode"]:
     sys.exit("REJECTED: versionCode must increase")
 
+# Extract the launcher icon (PNG/WebP only; adaptive XML icons are skipped)
+icon = None
+cands = re.findall(r"application-icon-(\d+):'([^']+\.(?:png|webp))'", badging)
+if cands:
+    path = max(cands, key=lambda c: int(c[0]))[1]
+    out = pathlib.Path(a.store).parent / "icons"; out.mkdir(exist_ok=True)
+    with zipfile.ZipFile(apk) as z: (out / f"{app_id}.png").write_bytes(z.read(path))
+    icon = f"icons/{app_id}.png"
+
 entry = {
     "id": app_id, "name": label, "author": a.author or a.repo.split("/")[0], "repo": a.repo,
     "description": a.description or (old or {}).get("description", ""),
@@ -55,6 +64,7 @@ entry = {
         "sha256": sha, "certSha256": cert, "sizeBytes": apk.stat().st_size, "permissions": perms,
     },
 }
+entry["icon"] = icon or (old or {}).get("icon", "")
 store["apps"] = [x for x in store["apps"] if x["id"] != app_id] + [entry]
 store["updated"] = datetime.date.today().isoformat()
 store_path.write_text(json.dumps(store, indent=2) + "\n")
