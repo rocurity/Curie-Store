@@ -1,0 +1,23 @@
+{
+  "schema": 1,
+  "updated": "2026-10-09",
+  "apps": [
+    {
+      "id": "com.example.hello",
+      "name": "Hello Curie",
+      "author": "peter",
+      "repo": "peter/hello-curie",
+      "description": "Demo entry. Replace it by running tools/index_apk.py on a real signed APK.",
+      "category": "tools",
+      "latest": {
+        "version": "1.0.0",
+        "versionCode": 1,
+        "apkUrl": "https://github.com/peter/hello-curie/releases/download/v1.0.0/app-release.apk",
+        "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+        "certSha256": "1111111111111111111111111111111111111111111111111111111111111111",
+        "sizeBytes": 2457600,
+        "permissions": ["android.permission.INTERNET", "android.permission.CAMERA"]
+      }
+    }
+  ]
+}
