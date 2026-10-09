@@ -17,7 +17,7 @@ def run(cmd):
 ap = argparse.ArgumentParser()
 ap.add_argument("apk"); ap.add_argument("--repo", required=True); ap.add_argument("--tag", required=True)
 ap.add_argument("--author"); ap.add_argument("--category", default="tools")
-ap.add_argument("--description", default=""); ap.add_argument("--store", default="site/store.json")
+ap.add_argument("--description", default=""); ap.add_argument("--store", default="store.json")
 ap.add_argument("--allow-key-change", action="store_true")
 a = ap.parse_args()
 
