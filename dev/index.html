@@ -20,12 +20,29 @@ label{display:block;font-weight:500;font-size:.9rem;margin:18px 0 6px}
 input,select{width:100%;font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 16px}
 button{width:100%;margin-top:28px;font:700 1rem inherit;background:var(--blue);color:var(--blue-ink);border:0;border-radius:999px;padding:14px;cursor:pointer}
 .err{color:var(--err);font-size:.88rem;margin-top:8px;min-height:1.2em}
+.steps{list-style:none;margin:0 0 8px;padding:0;counter-reset:s;display:grid;gap:10px}
+.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.steps li::before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;background:var(--blue);color:var(--blue-ink);display:grid;place-items:center;font-weight:700;font-size:.85rem}
+.steps b{display:block;font-weight:500}
+.steps span{color:var(--mute);font-size:.9rem}
+.steps a{color:var(--blue)}
+.note{color:var(--mute);font-size:.88rem;margin:14px 0 0}
+h2{font-size:1.1rem;margin:32px 0 0}
 </style>
 </head>
 <body>
 <div class="wrap">
   <div class="back">Curie Developers</div>
-  <h1>Submit an app</h1>
+  <h1>Publish your app</h1>
+  <ol class="steps">
+    <li><div><b>Create a GitHub account</b><span>Free, at <a href="https://github.com/signup" rel="noopener">github.com/signup</a></span></div></li>
+    <li><div><b>Create a repository</b><span>Click <a href="https://github.com/new" rel="noopener">New</a> and name it after your app</span></div></li>
+    <li><div><b>Build a signed release APK</b><span>Android Studio: Build, Generate Signed App Bundle / APK, APK. Debug builds are rejected</span></div></li>
+    <li><div><b>Publish a release</b><span>On your repo: Releases, Draft a new release, attach the APK, Publish. One APK per release</span></div></li>
+    <li><div><b>Submit your repo below</b><span>We review it and add it to the store</span></div></li>
+  </ol>
+  <p class="note">Keep your signing key safe. Every update must be signed with the same key.</p>
+  <h2>Submit</h2>
   <form id="f" novalidate>
     <label for="repo">GitHub repo</label>
     <input id="repo" placeholder="owner/app" autocomplete="off" autocapitalize="none" required>
