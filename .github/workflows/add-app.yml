@@ -1,0 +1,108 @@
+name: Add app
+
+on:
+  issues:
+    types: [labeled]
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: add-app
+
+jobs:
+  add:
+    # Runs only when the repo owner adds the "approved" label to a submission.
+    if: >-
+      github.event.label.name == 'approved' &&
+      github.event.sender.login == github.repository_owner &&
+      startsWith(github.event.issue.title, 'Submit:')
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      LOG: ${{ runner.temp }}/log.txt
+      NUM: ${{ github.event.issue.number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Read the request
+        id: req
+        shell: bash
+        env:
+          BODY: ${{ github.event.issue.body }}
+          AUTHOR: ${{ github.event.issue.user.login }}
+        run: |
+          exec > >(tee -a "$LOG") 2>&1
+          python3 - <<'PY'
+          import os, re, sys
+          body = os.environ["BODY"]
+          def field(k):
+              m = re.search(rf"^{k}:[ \t]*(.*)$", body, re.M)
+              return m.group(1).strip() if m else ""
+          repo = field("repo")
+          if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repo):
+              sys.exit("Invalid repo name")
+          if repo.split("/")[0].lower() != os.environ["AUTHOR"].lower():
+              sys.exit("The request must come from the owner of the repo")
+          cat = field("category").lower()
+          if cat not in {"tools", "productivity", "media", "games", "social", "education", "security"}:
+              cat = "tools"
+          desc = re.sub(r"\s+", " ", field("description"))[:160]
+          with open(os.environ["GITHUB_OUTPUT"], "a") as o:
+              o.write(f"repo={repo}\ncategory={cat}\ndesc={desc}\n")
+          PY
+
+      - name: Find Android build tools
+        run: echo "$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)" >> "$GITHUB_PATH"
+
+      - name: Download the release APK
+        id: dl
+        shell: bash
+        env:
+          REPO: ${{ steps.req.outputs.repo }}
+        run: |
+          exec > >(tee -a "$LOG") 2>&1
+          mkdir dl
+          TAG=$(gh release view -R "$REPO" --json tagName -q .tagName)
+          gh release download "$TAG" -R "$REPO" --pattern '*.apk' --dir dl
+          [ "$(ls dl | wc -l)" = 1 ] || { echo "The release must contain exactly one APK"; exit 1; }
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "apk=$(ls dl/*.apk)" >> "$GITHUB_OUTPUT"
+
+      - name: Verify and index
+        shell: bash
+        env:
+          REPO: ${{ steps.req.outputs.repo }}
+          CAT: ${{ steps.req.outputs.category }}
+          DESC: ${{ steps.req.outputs.desc }}
+          TAG: ${{ steps.dl.outputs.tag }}
+          APK: ${{ steps.dl.outputs.apk }}
+        run: |
+          exec > >(tee -a "$LOG") 2>&1
+          python3 tools/index_apk.py "$APK" --repo "$REPO" --tag "$TAG" \
+            --category "$CAT" --description "$DESC" --store store.json
+
+      - name: Publish
+        shell: bash
+        env:
+          REPO: ${{ steps.req.outputs.repo }}
+          TAG: ${{ steps.dl.outputs.tag }}
+        run: |
+          git config user.name "curie-store[bot]"
+          git config user.email "actions@users.noreply.github.com"
+          git add store.json
+          [ -d icons ] && git add icons || true
+          git commit -m "Add $REPO $TAG"
+          git pull --rebase
+          git push
+          gh issue comment "$NUM" -R "$GITHUB_REPOSITORY" --body "Added: $REPO $TAG"
+          gh issue close "$NUM" -R "$GITHUB_REPOSITORY"
+
+      - name: Report failure
+        if: failure()
+        shell: bash
+        run: |
+          { echo "Not added."; echo '```'; tail -n 15 "$LOG" 2>/dev/null; echo '```'; } > msg.md
+          gh issue comment "$NUM" -R "$GITHUB_REPOSITORY" --body-file msg.md
+          gh issue edit "$NUM" -R "$GITHUB_REPOSITORY" --remove-label approved
