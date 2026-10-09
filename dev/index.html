@@ -8,65 +8,236 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f5f7fb;--surface:#fff;--ink:#0f172a;--mute:#667085;--line:#e3e8f0;--blue:#2447f5;--blue-ink:#fff;--err:#d92d20}
-@media(prefers-color-scheme:dark){:root{--bg:#0a0e1a;--surface:#131a2b;--ink:#eef2fb;--mute:#8f9bb8;--line:#232d47;--blue:#6f8bff;--blue-ink:#0a0e1a;--err:#ff7a70}}
+:root{--bg:#f5f7fb;--surface:#fff;--ink:#0f172a;--mute:#667085;--line:#e3e8f0;--blue:#2447f5;--blue-ink:#fff;--chip:#e9eefb;--ok:#0b7a4b;--warn:#b54708;--bad:#d92d20}
+@media(prefers-color-scheme:dark){:root{--bg:#0a0e1a;--surface:#131a2b;--ink:#eef2fb;--mute:#8f9bb8;--line:#232d47;--blue:#6f8bff;--blue-ink:#0a0e1a;--chip:#1b2440;--ok:#4fd39a;--warn:#ffb86b;--bad:#ff7a70}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.4 "DM Sans",system-ui,sans-serif}
 :focus-visible{outline:3px solid var(--blue);outline-offset:2px}
-.wrap{max-width:460px;margin:auto;padding:0 20px}
-.back{display:inline-flex;align-items:center;gap:8px;height:68px;color:var(--ink);text-decoration:none;font-weight:700;font-size:1.2rem;letter-spacing:-.02em}
-h1{font-size:1.6rem;letter-spacing:-.02em;margin:12px 0 24px}
-label{display:block;font-weight:500;font-size:.9rem;margin:18px 0 6px}
-input,select{width:100%;font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 16px}
-button{width:100%;margin-top:28px;font:700 1rem inherit;background:var(--blue);color:var(--blue-ink);border:0;border-radius:999px;padding:14px;cursor:pointer}
-.err{color:var(--err);font-size:.88rem;margin-top:8px;min-height:1.2em}
-.steps{list-style:none;margin:0 0 8px;padding:0;counter-reset:s;display:grid;gap:10px}
-.steps li{counter-increment:s;display:flex;gap:14px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
-.steps li::before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;background:var(--blue);color:var(--blue-ink);display:grid;place-items:center;font-weight:700;font-size:.85rem}
-.steps b{display:block;font-weight:500}
-.steps span{color:var(--mute);font-size:.9rem}
-.steps a{color:var(--blue)}
+.wrap{max-width:860px;margin:auto;padding:0 20px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.bar{display:flex;align-items:center;gap:12px;height:64px}
+.brand{font-weight:700;font-size:1.15rem;letter-spacing:-.02em;margin-right:auto}
+.user{display:flex;align-items:center;gap:10px;font-size:.92rem}
+.user img{width:30px;height:30px;border-radius:50%;background:var(--chip)}
+button,.btn{font:500 .95rem inherit;font-family:inherit;cursor:pointer;border:0;border-radius:999px;padding:10px 18px;text-decoration:none;display:inline-block;text-align:center}
+.primary{background:var(--blue);color:var(--blue-ink);font-weight:700}
+.ghost{background:var(--chip);color:var(--ink)}
+.title{display:flex;align-items:center;justify-content:space-between;margin:28px 0 18px}
+h1{font-size:1.7rem;letter-spacing:-.02em;margin:0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.stat b{display:block;font-size:1.6rem;line-height:1.1}.stat span{color:var(--mute);font-size:.85rem}
+.list{display:grid;gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px}
+.head{display:flex;gap:14px;align-items:center}
+.icon{width:56px;height:56px;border-radius:22%;object-fit:cover;display:grid;place-items:center;color:#fff;font-weight:700;font-size:1.4rem;flex:none}
+.grow{flex:1;min-width:0}
+.name{font-weight:700;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{color:var(--mute);font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub a{color:inherit}
+.pill{flex:none;font-size:.8rem;font-weight:500;border-radius:999px;padding:4px 12px}
+.p-live{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
+.p-review,.p-publishing{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+.p-failed,.p-declined{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}
+.track{display:flex;margin:20px 0 4px}
+.step{flex:1;position:relative;text-align:center;font-size:.75rem;color:var(--mute)}
+.step::before{content:"";position:absolute;top:9px;left:-50%;right:50%;height:2px;background:var(--line)}
+.step:first-child::before{display:none}
+.dot{width:20px;height:20px;border-radius:50%;background:var(--line);margin:0 auto 6px;position:relative;z-index:1;display:grid;place-items:center;color:var(--blue-ink);font-size:.7rem;font-weight:700}
+.step.done .dot{background:var(--blue)}.step.done::before,.step.now::before{background:var(--blue)}
+.step.now .dot{background:var(--surface);border:2px solid var(--blue)}
+.step.now{color:var(--ink);font-weight:500}
+.step.bad .dot{background:var(--bad);border:0}.step.bad{color:var(--bad)}.step.bad::before{background:var(--blue)}
+.reason{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:.9rem;background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad);word-break:break-word}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
+.actions .btn,.actions button{padding:8px 16px;font-size:.9rem}
+details{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;color:var(--mute);font-size:.88rem}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 12px;margin-top:10px;font-size:.88rem}
+.kv span{color:var(--mute)}.kv code{font:12px/1.5 ui-monospace,monospace;word-break:break-all}
+.hist{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;font-size:.88rem}
+.hist li{display:flex;justify-content:space-between;gap:10px}
+.hist a{color:inherit}
+.empty{text-align:center;padding:44px 20px}
+.empty h2{margin:0 0 6px}
+.guide{margin:28px 0 60px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:6px 18px 18px}
+.guide summary{padding:12px 0;font-weight:500;color:var(--ink);font-size:1rem}
+.how{list-style:none;margin:0;padding:0;counter-reset:s;display:grid;gap:12px}
+.how li{counter-increment:s;display:flex;gap:14px;align-items:flex-start}
+.how li::before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;background:var(--blue);color:var(--blue-ink);display:grid;place-items:center;font-weight:700;font-size:.85rem}
+.how b{display:block;font-weight:500}.how span{color:var(--mute);font-size:.9rem}.how a{color:var(--blue)}
 .note{color:var(--mute);font-size:.88rem;margin:14px 0 0}
-h2{font-size:1.1rem;margin:32px 0 0}
+.signin{max-width:380px;margin:12vh auto 0}
+.signin h1{margin-bottom:22px}
+label{display:block;font-weight:500;font-size:.9rem;margin:16px 0 6px}
+input,select{width:100%;font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 16px}
+.full{width:100%;margin-top:22px;padding:14px}
+.err{color:var(--bad);font-size:.88rem;min-height:1.3em;margin-top:8px}
+dialog{width:min(460px,100%);border:0;border-radius:24px;background:var(--surface);color:var(--ink);padding:24px;margin:auto}
+dialog::backdrop{background:rgba(8,12,24,.6)}
+dialog h2{margin:0 0 4px}
+@media(max-width:600px){.stats{gap:8px}.stat{padding:12px}.kv{grid-template-columns:1fr}dialog{margin:auto 0 0;border-radius:24px 24px 0 0}}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <div class="back">Curie Developers</div>
-  <h1>Publish your app</h1>
-  <ol class="steps">
-    <li><div><b>Create a GitHub account</b><span>Free, at <a href="https://github.com/signup" rel="noopener">github.com/signup</a></span></div></li>
-    <li><div><b>Create a repository</b><span>Click <a href="https://github.com/new" rel="noopener">New</a> and name it after your app</span></div></li>
-    <li><div><b>Build a signed release APK</b><span>Android Studio: Build, Generate Signed App Bundle / APK, APK. Debug builds are rejected</span></div></li>
-    <li><div><b>Publish a release</b><span>On your repo: Releases, Draft a new release, attach the APK, Publish. One APK per release</span></div></li>
-    <li><div><b>Submit your repo below</b><span>We review it and add it to the store</span></div></li>
-  </ol>
-  <p class="note">Keep your signing key safe. Every update must be signed with the same key.</p>
-  <h2>Submit</h2>
-  <form id="f" novalidate>
-    <label for="repo">GitHub repo</label>
-    <input id="repo" placeholder="owner/app" autocomplete="off" autocapitalize="none" required>
-    <label for="cat">Category</label>
-    <select id="cat">
-      <option>tools</option><option>productivity</option><option>media</option><option>games</option>
-      <option>social</option><option>education</option><option>security</option>
-    </select>
-    <label for="desc">Description</label>
-    <input id="desc" maxlength="160" placeholder="Optional">
-    <div class="err" id="err" role="alert"></div>
-    <button type="submit">Submit</button>
-  </form>
-</div>
+<div id="app"></div>
+<dialog id="dlg"></dialog>
 <script>
-const STORE_REPO='rocurity/Curie-Store';
-document.getElementById('f').onsubmit=e=>{
-  e.preventDefault();
-  const repo=document.getElementById('repo').value.trim().replace(/^https:\/\/github\.com\//,'').replace(/\/$/,'');
-  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){document.getElementById('err').textContent='Enter the repo as owner/app';return}
-  const cat=document.getElementById('cat').value,desc=document.getElementById('desc').value.replace(/\s+/g,' ').trim();
-  const body=`repo: ${repo}\ncategory: ${cat}\ndescription: ${desc}\n`;
-  location.href=`https://github.com/${STORE_REPO}/issues/new?title=${encodeURIComponent('Submit: '+repo)}&body=${encodeURIComponent(body)}`;
-};
+const STORE_REPO='rocurity/Curie-Store',API='https://api.github.com';
+const CATS=['tools','productivity','media','games','social','education','security'];
+const STEPS=['Submitted','In review','Publishing','Live'];
+const $=id=>document.getElementById(id);
+function h(t,at={},...kids){const e=document.createElement(t);
+  for(const[k,v]of Object.entries(at)){if(k==='class')e.className=v;else if(k.startsWith('on'))e[k]=v;else e.setAttribute(k,v)}
+  for(const c of kids.flat())if(c!=null&&c!==false)e.append(c);return e}
+const ls={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}},del:k=>{try{localStorage.removeItem(k)}catch{}}};
+const cap=s=>s[0].toUpperCase()+s.slice(1);
+const mb=b=>b>0?(b/1048576).toFixed(1)+' MB':'-';
+const hue=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))%360,7);
+let user=ls.get('curie-dev-user')||'',S={store:null,subs:[],loading:false,error:'',at:0};
+
+function tile(name,id,iconPath,size){
+  const x=hue(id),box=h('div',{class:'icon'},name[0].toUpperCase());
+  box.style.background=`linear-gradient(145deg,hsl(${x} 75% 58%),hsl(${(x+40)%360} 70% 42%))`;
+  box.style.width=box.style.height=size+'px';
+  if(/^icons\/[\w.\-]+$/.test(iconPath||'')){
+    const i=h('img',{class:'icon',src:'../'+iconPath,alt:''});i.style.width=i.style.height=size+'px';
+    i.onerror=()=>i.replaceWith(box);return i}
+  return box}
+
+function status(i,inStore){
+  const labels=i.labels.map(l=>l.name);
+  if(i.state==='closed')return inStore?{k:'live'}:{k:'declined',reason:'This request was closed without being added.'};
+  if(labels.includes('approved'))return{k:'publishing'};
+  const fail=[...(i._comments||[])].reverse().find(c=>c.body.startsWith('Not added'));
+  if(fail){const ls2=fail.body.split('\n').map(x=>x.trim()).filter(x=>x&&!x.startsWith('Not added')&&!x.startsWith('```'));
+    return{k:'failed',reason:ls2[ls2.length-1]||'The check failed.'}}
+  return{k:'review'}}
+const LABEL={live:'Live',review:'In review',publishing:'Publishing',failed:'Needs attention',declined:'Declined'};
+const POS={review:1,publishing:2,live:4,failed:1,declined:1};
+
+function model(){
+  const g=new Map(),u=user.toLowerCase();
+  for(const i of S.subs){const repo=i.title.slice(8).trim(),k=repo.toLowerCase();
+    if(!g.has(k))g.set(k,{repo,issues:[]});g.get(k).issues.push(i)}
+  for(const a of S.store.apps)if(a.repo.split('/')[0].toLowerCase()===u&&!g.has(a.repo.toLowerCase()))g.set(a.repo.toLowerCase(),{repo:a.repo,issues:[]});
+  const order={failed:0,declined:0,review:1,publishing:1,live:2};
+  return[...g.entries()].map(([k,v])=>{
+    const live=S.store.apps.find(a=>a.repo.toLowerCase()===k);
+    const hist=v.issues.map(i=>({i,s:status(i,!!live)}));
+    return{key:k,repo:v.repo,live,hist,cur:hist[0]?hist[0].s:{k:'live'}}
+  }).sort((a,b)=>order[a.cur.k]-order[b.cur.k]||a.repo.localeCompare(b.repo))}
+
+async function load(){
+  S.loading=true;S.error='';render();
+  const hd={headers:{Accept:'application/vnd.github+json'}};
+  try{
+    const[store,issues]=await Promise.all([
+      fetch('../store.json').then(r=>r.json()),
+      fetch(`${API}/repos/${STORE_REPO}/issues?creator=${encodeURIComponent(user)}&state=all&per_page=50`,hd)
+        .then(r=>{if(r.status===403||r.status===429)throw new Error('rate');if(!r.ok)throw new Error('api');return r.json()})]);
+    S.store=store;
+    S.subs=issues.filter(i=>!i.pull_request&&/^Submit: [\w.-]+\/[\w.-]+$/.test(i.title));
+    await Promise.all(S.subs.filter(i=>i.state==='open'&&i.comments>0).map(async i=>{
+      i._comments=await fetch(`${API}/repos/${STORE_REPO}/issues/${i.number}/comments?per_page=100`,hd).then(r=>r.ok?r.json():[])}));
+    S.at=Date.now();
+  }catch(e){S.error=e.message==='rate'?'GitHub is limiting requests. Try again in a few minutes.':'Could not load your apps. Try again.'}
+  S.loading=false;render()}
+
+function signin(){
+  const inp=h('input',{placeholder:'GitHub username',autocomplete:'off',autocapitalize:'none','aria-label':'GitHub username'});
+  const err=h('div',{class:'err',role:'alert'});
+  const go=()=>{const v=inp.value.trim().replace(/^@/,'');
+    if(!/^[A-Za-z0-9-]{1,39}$/.test(v)){err.textContent='Enter your GitHub username';return}
+    user=v;ls.set('curie-dev-user',v);S={store:null,subs:[],loading:false,error:'',at:0};load()};
+  inp.onkeydown=e=>{if(e.key==='Enter')go()};
+  return h('div',{class:'wrap signin'},h('div',{class:'brand'},'Curie Developers'),h('h1',{},'Sign in'),
+    h('label',{},'GitHub username'),inp,err,h('button',{class:'primary full',onclick:go},'Continue'))}
+
+function track(cur){
+  const c=POS[cur.k],bad=cur.k==='failed'||cur.k==='declined';
+  return h('div',{class:'track'},STEPS.map((s,i)=>{
+    const cls=i<c?'done':i===c?(bad?'bad':'now'):'';
+    return h('div',{class:'step '+cls},h('div',{class:'dot'},cls==='done'?'✓':cls==='bad'?'!':''),s)}))}
+
+function card(m){
+  const l=m.live,name=l?l.name:m.repo.split('/')[1],k=m.cur.k;
+  const head=h('div',{class:'head'},tile(name,l?l.id:m.repo,l&&l.icon,56),
+    h('div',{class:'grow'},h('div',{class:'name'},name),
+      h('div',{class:'sub'},h('a',{href:'https://github.com/'+m.repo,rel:'noopener'},m.repo),l?` · v${l.latest.version} · ${cap(l.category)}`:'')),
+    h('span',{class:'pill p-'+k},LABEL[k]));
+  const acts=h('div',{class:'actions'});
+  if(l)acts.append(h('a',{class:'btn ghost',href:'../'},'View in store'));
+  if(k==='live')acts.append(h('button',{class:'primary',onclick:()=>openSubmit(m.repo,l&&l.category)},'Submit update'));
+  if(k==='failed'||k==='declined')acts.append(h('button',{class:'primary',onclick:()=>openSubmit(m.repo,l&&l.category)},'Resubmit'));
+  if(m.hist[0]&&k!=='live')acts.append(h('a',{class:'btn ghost',href:m.hist[0].i.html_url,rel:'noopener'},'View request'));
+  const fmt=d=>new Date(d).toLocaleDateString(undefined,{month:'short',day:'numeric'});
+  return h('article',{class:'card'},head,
+    k==='live'?null:track(m.cur),
+    m.cur.reason?h('div',{class:'reason'},m.cur.reason):null,
+    acts.children.length?acts:null,
+    l?h('details',{},h('summary',{},'App details'),h('div',{class:'kv'},
+      h('span',{},'Version'),h('div',{},l.latest.version),h('span',{},'Size'),h('div',{},mb(l.latest.sizeBytes)),
+      h('span',{},'Permissions'),h('div',{},String(l.latest.permissions.length)),
+      h('span',{},'Signed by'),h('code',{},l.latest.certSha256))):null,
+    m.hist.length?h('details',{},h('summary',{},'History'),h('ul',{class:'hist'},m.hist.map(x=>
+      h('li',{},h('a',{href:x.i.html_url,rel:'noopener'},'Request #'+x.i.number+' · '+fmt(x.i.created_at)),h('span',{class:'pill p-'+x.s.k},LABEL[x.s.k]))))):null)}
+
+function guide(open){
+  const li=(b,s)=>h('li',{},h('div',{},h('b',{},b),h('span',{},...s)));
+  const a=(u,t)=>h('a',{href:u,rel:'noopener'},t);
+  const d=h('details',{class:'guide'},h('summary',{},'How to publish an app'),h('ol',{class:'how'},
+    li('Create a GitHub account',['Free, at ',a('https://github.com/signup','github.com/signup')]),
+    li('Create a repository',['Click ',a('https://github.com/new','New'),' and name it after your app']),
+    li('Build a signed release APK',['Android Studio: Build, Generate Signed App Bundle / APK, APK. Debug builds are rejected']),
+    li('Publish a release',['On your repo: Releases, Draft a new release, attach the APK, Publish. One APK per release']),
+    li('Submit your repo',['Press New app here. We review it and add it to the store'])),
+    h('p',{class:'note'},'Keep your signing key safe. Every update must be signed with the same key.'));
+  if(open)d.open=true;return d}
+
+function dashboard(){
+  const root=h('div',{});
+  root.append(h('header',{},h('div',{class:'wrap bar'},h('div',{class:'brand'},'Curie Developers'),
+    h('div',{class:'user'},h('img',{src:`https://github.com/${encodeURIComponent(user)}.png?size=64`,alt:''}),user),
+    h('button',{class:'ghost',onclick:()=>{ls.del('curie-dev-user');user='';render()}},'Sign out'))));
+  const main=h('main',{class:'wrap'});root.append(main);
+  main.append(h('div',{class:'title'},h('h1',{},'Your apps'),
+    h('div',{},h('button',{class:'ghost',onclick:load,style:'margin-right:8px'},S.loading?'Loading':'Refresh'),
+      h('button',{class:'primary',onclick:()=>openSubmit()},'New app'))));
+  if(S.error)main.append(h('div',{class:'reason'},S.error));
+  if(!S.store){if(!S.error)main.append(h('p',{class:'sub'},'Loading'));return root}
+  const ms=model(),n=f=>ms.filter(m=>f.includes(m.cur.k)).length;
+  main.append(h('section',{class:'stats'},
+    h('div',{class:'stat'},h('b',{},String(n(['live']))),h('span',{},'Live')),
+    h('div',{class:'stat'},h('b',{},String(n(['review','publishing']))),h('span',{},'In progress')),
+    h('div',{class:'stat'},h('b',{},String(n(['failed','declined']))),h('span',{},'Needs attention'))));
+  if(!ms.length)main.append(h('div',{class:'card empty'},h('h2',{},'No apps yet'),h('p',{class:'sub'},'Publish your first app in a few steps')));
+  else main.append(h('section',{class:'list'},ms.map(card)));
+  main.append(guide(!ms.length));
+  return root}
+
+function openSubmit(repo='',cat='tools'){
+  const d=$('dlg');
+  const r=h('input',{id:'repo',placeholder:'owner/app',autocomplete:'off',autocapitalize:'none',value:repo});
+  const c=h('select',{},CATS.map(x=>h('option',{value:x},cap(x))));c.value=CATS.includes(cat)?cat:'tools';
+  const ds=h('input',{maxlength:'160',placeholder:'Optional'});
+  const err=h('div',{class:'err',role:'alert'});
+  const go=()=>{
+    const v=r.value.trim().replace(/^https:\/\/github\.com\//,'').replace(/\/$/,'');
+    if(!/^[\w.-]+\/[\w.-]+$/.test(v)){err.textContent='Enter the repo as owner/app';return}
+    const body=`repo: ${v}\ncategory: ${c.value}\ndescription: ${ds.value.replace(/\s+/g,' ').trim()}\n`;
+    window.open(`https://github.com/${STORE_REPO}/issues/new?title=${encodeURIComponent('Submit: '+v)}&body=${encodeURIComponent(body)}`,'_blank','noopener');
+    d.close()};
+  d.replaceChildren(h('h2',{},repo?'Submit update':'New app'),
+    h('label',{},'GitHub repo'),r,h('label',{},'Category'),c,h('label',{},'Description'),ds,err,
+    h('p',{class:'note'},'Opens GitHub. Press Create there, then come back and refresh.'),
+    h('div',{class:'actions'},h('button',{class:'primary',onclick:go},'Continue'),h('button',{class:'ghost',onclick:()=>d.close()},'Cancel')));
+  d.showModal()}
+$('dlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
+
+function render(){const a=$('app');a.replaceChildren(user?dashboard():signin())}
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user&&!S.loading&&Date.now()-S.at>30000)load()});
+render();if(user)load();
 </script>
 </body>
 </html>
