@@ -81,7 +81,7 @@ jobs:
         run: |
           exec > >(tee -a "$LOG") 2>&1
           python3 tools/index_apk.py "$APK" --repo "$REPO" --tag "$TAG" \
-            --category "$CAT" --description "$DESC" --store store.json
+            --category "$CAT" --description "$DESC" --store store/store.json
 
       - name: Publish
         shell: bash
@@ -91,8 +91,8 @@ jobs:
         run: |
           git config user.name "curie-store[bot]"
           git config user.email "actions@users.noreply.github.com"
-          git add store.json
-          [ -d icons ] && git add icons || true
+          git add store/store.json
+          [ -d store/icons ] && git add store/icons || true
           git commit -m "Add $REPO $TAG"
           git pull --rebase
           git push
