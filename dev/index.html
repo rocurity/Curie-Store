@@ -19,7 +19,7 @@ header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px so
 .brand{font-weight:700;font-size:1.15rem;letter-spacing:-.02em;margin-right:auto}
 .user{display:flex;align-items:center;gap:10px;font-size:.92rem}
 .user img{width:30px;height:30px;border-radius:50%;background:var(--chip)}
-button,.btn{font:500 .95rem inherit;font-family:inherit;cursor:pointer;border:0;border-radius:999px;padding:10px 18px;text-decoration:none;display:inline-block;text-align:center}
+button,.btn{font:500 .95rem "DM Sans",system-ui,sans-serif;font-family:inherit;cursor:pointer;border:0;border-radius:999px;padding:10px 18px;text-decoration:none;display:inline-block;text-align:center}
 .primary{background:var(--blue);color:var(--blue-ink);font-weight:700}
 .ghost{background:var(--chip);color:var(--ink)}
 .title{display:flex;align-items:center;justify-content:space-between;margin:28px 0 18px}
@@ -94,7 +94,8 @@ const ls={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,
 const cap=s=>s[0].toUpperCase()+s.slice(1);
 const mb=b=>b>0?(b/1048576).toFixed(1)+' MB':'-';
 const hue=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))%360,7);
-let user=ls.get('curie-dev-user')||'',S={store:null,subs:[],loading:false,error:'',at:0};
+const AUTH_URL='https://curie-auth.YOUR-SUBDOMAIN.workers.dev';
+let user='',token=ls.get('curie-session')||'',booting=true,authErr='',S={store:null,subs:[],loading:false,error:'',at:0};
 
 function tile(name,id,iconPath,size){
   const x=hue(id),box=h('div',{class:'icon'},name[0].toUpperCase());
@@ -145,14 +146,22 @@ async function load(){
   S.loading=false;render()}
 
 function signin(){
-  const inp=h('input',{placeholder:'GitHub username',autocomplete:'off',autocapitalize:'none','aria-label':'GitHub username'});
-  const err=h('div',{class:'err',role:'alert'});
-  const go=()=>{const v=inp.value.trim().replace(/^@/,'');
-    if(!/^[A-Za-z0-9-]{1,39}$/.test(v)){err.textContent='Enter your GitHub username';return}
-    user=v;ls.set('curie-dev-user',v);S={store:null,subs:[],loading:false,error:'',at:0};load()};
-  inp.onkeydown=e=>{if(e.key==='Enter')go()};
   return h('div',{class:'wrap signin'},h('div',{class:'brand'},'Curie Developers'),h('h1',{},'Sign in'),
-    h('label',{},'GitHub username'),inp,err,h('button',{class:'primary full',onclick:go},'Continue'))}
+    h('a',{class:'btn primary full',href:AUTH_URL+'/login'},'Continue with GitHub'),
+    authErr?h('div',{class:'err',role:'alert'},authErr):null)}
+
+async function boot(){
+  const m=location.hash.match(/session=([\w.\-]+)/);
+  if(m){token=m[1];ls.set('curie-session',token);history.replaceState(null,'',location.pathname)}
+  if(token){
+    try{
+      const r=await fetch(AUTH_URL+'/me',{headers:{Authorization:'Bearer '+token}});
+      if(r.status===401){token='';ls.del('curie-session')}
+      else if(r.ok)user=(await r.json()).login;
+      else authErr='Sign-in is unavailable. Try again later.';
+    }catch{authErr='Sign-in is unavailable. Try again later.'}
+  }
+  booting=false;render();if(user)load()}
 
 function track(cur){
   const c=POS[cur.k],bad=cur.k==='failed'||cur.k==='declined';
@@ -199,7 +208,7 @@ function dashboard(){
   const root=h('div',{});
   root.append(h('header',{},h('div',{class:'wrap bar'},h('div',{class:'brand'},'Curie Developers'),
     h('div',{class:'user'},h('img',{src:`https://github.com/${encodeURIComponent(user)}.png?size=64`,alt:''}),user),
-    h('button',{class:'ghost',onclick:()=>{ls.del('curie-dev-user');user='';render()}},'Sign out'))));
+    h('button',{class:'ghost',onclick:()=>{ls.del('curie-session');token='';user='';render()}},'Sign out'))));
   const main=h('main',{class:'wrap'});root.append(main);
   main.append(h('div',{class:'title'},h('h1',{},'Your apps'),
     h('div',{},h('button',{class:'ghost',onclick:load,style:'margin-right:8px'},S.loading?'Loading':'Refresh'),
@@ -235,9 +244,9 @@ function openSubmit(repo='',cat='tools'){
   d.showModal()}
 $('dlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 
-function render(){const a=$('app');a.replaceChildren(user?dashboard():signin())}
+function render(){const a=$('app');a.replaceChildren(booting?h('p',{class:'sub',style:'padding:24px 20px'},'Loading'):user?dashboard():signin())}
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user&&!S.loading&&Date.now()-S.at>30000)load()});
-render();if(user)load();
+render();boot();
 </script>
 </body>
 </html>
