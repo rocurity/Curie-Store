@@ -22,7 +22,7 @@ header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px so
 .search input{width:100%;font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:10px 16px 10px 42px}
 .search svg{position:absolute;left:14px;top:11px;width:18px;height:18px;color:var(--mute)}
 .chips{display:flex;gap:8px;overflow-x:auto;padding:0 0 14px;scrollbar-width:none}
-.chip{flex:none;font:500 .9rem inherit;color:var(--ink);background:var(--chip);border:0;border-radius:999px;padding:7px 16px;cursor:pointer}
+.chip{flex:none;font:500 .9rem "DM Sans",system-ui,sans-serif;color:var(--ink);background:var(--chip);border:0;border-radius:999px;padding:7px 16px;cursor:pointer}
 .chip[aria-pressed=true]{background:var(--blue);color:var(--blue-ink)}
 main{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:8px;padding:20px 12px 60px;max-width:1040px;margin:auto}
 .tile{background:none;border:0;font:inherit;color:inherit;text-align:left;cursor:pointer;padding:12px;border-radius:18px;display:flex;flex-direction:column;gap:10px;min-width:0}
@@ -39,12 +39,38 @@ dialog::backdrop{background:rgba(8,12,24,.6)}
 .top h2{margin:0;font-size:1.4rem;letter-spacing:-.02em}
 .x{margin-left:auto;align-self:flex-start;background:var(--chip);color:var(--ink);border:0;width:34px;height:34px;border-radius:50%;font-size:1.1rem;cursor:pointer}
 .install{display:block;width:100%;margin:20px 0;text-align:center;text-decoration:none;background:var(--blue);color:var(--blue-ink);font-weight:700;padding:13px;border-radius:999px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);text-align:center;border-block:1px solid var(--line);padding:12px 0}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;border-block:1px solid var(--line);padding:12px 0}
 .stats b{display:block;font-size:1rem}.stats span{color:var(--mute);font-size:.8rem}
 h3{font-size:.95rem;margin:20px 0 8px}
 .perms{display:flex;flex-wrap:wrap;gap:6px}
 .perms span{background:var(--chip);border-radius:999px;padding:4px 12px;font-size:.82rem}
 code{display:block;font:12px/1.5 ui-monospace,monospace;color:var(--mute);word-break:break-all}
+.acct{flex:none;height:40px;min-width:40px;border:0;border-radius:999px;background:var(--chip);color:var(--ink);font:500 .9rem "DM Sans",system-ui,sans-serif;padding:0 16px;cursor:pointer}
+.acct.on{width:40px;padding:0;background:var(--blue);color:var(--blue-ink);font-weight:700}
+#auth{width:min(400px,100%)}
+#auth h2{margin:0 0 6px;font-size:1.3rem;letter-spacing:-.02em}
+#auth input{width:100%;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:13px 16px;margin-top:12px}
+#auth .primary,#auth .ghost{font:700 1rem "DM Sans",system-ui,sans-serif;border:0;border-radius:999px;padding:13px 18px;cursor:pointer;text-decoration:none;text-align:center;display:inline-block}
+#auth .primary{background:var(--blue);color:var(--blue-ink)}
+#auth .ghost{background:var(--chip);color:var(--ink);font-weight:500}
+#auth .wide{width:100%;margin-top:14px}
+#auth .err{color:#d92d20;font-size:.88rem;min-height:1.2em;margin-top:8px}
+#auth .link{display:block;text-align:center;margin-top:16px;color:var(--blue);font-size:.92rem}
+#auth .row{display:flex;gap:10px;margin-top:18px}#auth .row>*{flex:1}
+#auth .wait{color:var(--mute);margin:6px 0}
+.spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:sp 1s linear infinite;margin:14px 0}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+.rate{margin-top:10px}
+.starrow{display:flex;gap:4px;margin-bottom:10px}
+.st{background:none;border:0;font-size:1.7rem;line-height:1;color:var(--blue);cursor:pointer;padding:2px}
+.rate textarea{width:100%;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px 14px;resize:vertical}
+.rate .err{color:#d92d20;font-size:.88rem;min-height:1.2em;margin-top:6px}
+.frow{display:flex;gap:8px;margin-top:6px}
+.pbtn,.gbtn{font:700 .95rem "DM Sans",system-ui,sans-serif;border:0;border-radius:999px;padding:11px 20px;cursor:pointer}
+.pbtn{background:var(--blue);color:var(--blue-ink)}.gbtn{background:var(--chip);color:var(--ink);font-weight:500}
+.revs{display:grid;gap:12px;margin-top:14px}
+.rev p{margin:2px 0 0;font-size:.92rem;overflow-wrap:anywhere}.rh b{font-weight:500;font-size:.9rem}
 </style>
 </head>
 <body>
@@ -56,11 +82,13 @@ code{display:block;font:12px/1.5 ui-monospace,monospace;color:var(--mute);word-b
     </div>
     <label class="search"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="9" cy="9" r="6"/><path d="m14 14 4 4"/></svg>
       <input id="q" type="search" placeholder="Search" aria-label="Search apps"></label>
+    <button class="acct" id="acct">Sign in</button>
   </div>
   <div class="chips" id="chips"></div>
 </div></header>
 <main id="grid"></main>
 <dialog id="dlg"></dialog>
+<dialog id="auth"></dialog>
 <script>
 const $=id=>document.getElementById(id);
 function h(t,at={},...kids){const e=document.createElement(t);
@@ -78,37 +106,172 @@ function icon(a){
 const CATS=['tools','productivity','media','games','social','education','security'];
 const cap=t=>t[0].toUpperCase()+t.slice(1);
 let apps=[],cat='';
+const STORE_API='https://rocurity--d6f12a7ac46211f19d8c1607ee4eb77e.web.val.run';
+const SA={stats:{}},wish=new Set();let sheetRefresh=null;
+async function sapi(path,opts={}){
+  const headers={...(opts.body?{'Content-Type':'application/json'}:{}),...(cid.me?{Authorization:'Bearer '+cid.me.token}:{})};
+  const r=await fetch(STORE_API+path,{...opts,headers});
+  const data=await r.json().catch(()=>({}));
+  if(r.status===401&&cid.me){cid.me=null;cidSave(null);cidPaint();afterAuth();throw new Error('Signed out. Sign in again.')}
+  if(!r.ok)throw new Error(data.error||'Something went wrong');
+  return data}
+function loadStats(){sapi('/stats').then(d=>{SA.stats=d.apps||{};if(apps.length)render()}).catch(()=>{})}
+function loadWish(){
+  if(!cid.me){wish.clear();if(cat==='__wish')cat='';return}
+  sapi('/me/wishlist').then(d=>{wish.clear();d.apps.forEach(x=>wish.add(x));if(apps.length){chips();render()}}).catch(()=>{})}
+function afterAuth(){loadWish();if(apps.length){chips();render()}if(sheetRefresh)sheetRefresh()}
 function render(){
   const q=$('q').value.toLowerCase(),g=$('grid');g.replaceChildren();
-  const list=apps.filter(a=>(!cat||a.category===cat)&&(a.name+' '+a.author+' '+a.category).toLowerCase().includes(q));
-  if(!list.length){g.append(h('p',{class:'empty'},'No apps found'));return}
+  const list=apps.filter(a=>(cat==='__wish'?wish.has(a.id):(!cat||a.category===cat))&&(a.name+' '+a.author+' '+a.category).toLowerCase().includes(q));
+  if(!list.length){g.append(h('p',{class:'empty'},cat==='__wish'?'Your wishlist is empty':'No apps found'));return}
   for(const a of list)g.append(h('button',{class:'tile',onclick:()=>show(a)},icon(a),
-    h('div',{class:'name'},a.name),h('div',{class:'sub'},a.author+' · '+mb(a.latest.sizeBytes))));
+    h('div',{class:'name'},a.name),h('div',{class:'sub'},a.author),
+    h('div',{class:'sub'},((SA.stats[a.id]&&SA.stats[a.id].ratings)?'★ '+SA.stats[a.id].rating.toFixed(1)+' · ':'')+mb(a.latest.sizeBytes))));
 }
 function show(a){
-  const l=a.latest,d=$('dlg'),perms=l.permissions.map(p=>p.replace('android.permission.',''));
+  const l=a.latest,d=$('dlg'),id=encodeURIComponent(a.id),perms=l.permissions.map(p=>p.replace('android.permission.',''));
+  const st=SA.stats[a.id]||{rating:0,ratings:0,installs:0};
+  const fR=x=>x.ratings?'★ '+x.rating.toFixed(1):'-',fN=x=>x.ratings?x.ratings+' rating'+(x.ratings>1?'s':''):'No ratings';
+  const rB=h('b',{},fR(st)),rS=h('span',{},fN(st)),iB=h('b',{},String(st.installs));
+  const heart=h('button',{class:'x','aria-label':'Wishlist'},wish.has(a.id)?'♥':'♡');
+  heart.onclick=async()=>{
+    if(!cid.me){cidSignIn();return}
+    const on=!wish.has(a.id);
+    try{await sapi('/me/wishlist/'+id,{method:on?'PUT':'DELETE'});on?wish.add(a.id):wish.delete(a.id);
+      heart.textContent=on?'♥':'♡';chips();render()}catch{}};
+  let stars=0,mine=null;
+  const form=h('div',{class:'rate'}),revs=h('div',{class:'revs'}),starRow=h('div',{class:'starrow',role:'radiogroup','aria-label':'Your rating'});
+  const paint=()=>[...starRow.children].forEach((b,i)=>{b.textContent=i<stars?'★':'☆';b.setAttribute('aria-checked',String(i+1===stars))});
+  for(let i=1;i<=5;i++)starRow.append(h('button',{class:'st',role:'radio','aria-label':i+(i>1?' stars':' star'),onclick:()=>{stars=i;paint()}},'☆'));
+  const text=h('textarea',{maxlength:'500',rows:'3',placeholder:'Write a review (optional)'});
+  const err=h('div',{class:'err',role:'alert'}),go=h('button',{class:'pbtn'},'Submit'),del=h('button',{class:'gbtn'},'Remove');
+  const drawForm=()=>{
+    form.replaceChildren();
+    if(!cid.me){form.append(h('button',{class:'gbtn',onclick:cidSignIn},'Sign in to rate'));return}
+    if(mine){stars=mine.stars;text.value=mine.review}
+    paint();go.textContent=mine?'Update':'Submit';del.style.display=mine?'':'none';
+    form.append(starRow,text,err,h('div',{class:'frow'},go,del))};
+  const refresh=async()=>{
+    try{
+      const r=await sapi('/apps/'+id);
+      rB.textContent=fR(r);rS.textContent=fN(r);iB.textContent=String(r.installs);
+      SA.stats[a.id]={rating:r.rating,ratings:r.ratings,installs:r.installs};
+      if('mine' in r){mine=r.mine;if(r.wishlisted){wish.add(a.id)}else{wish.delete(a.id)}heart.textContent=r.wishlisted?'♥':'♡'}
+      else mine=null;
+      drawForm();
+      const rv=await sapi('/apps/'+id+'/reviews?limit=5');
+      revs.replaceChildren(...rv.reviews.map(x=>h('div',{class:'rev'},
+        h('div',{class:'rh'},h('b',{},x.name),h('span',{class:'sub'},'  '+'★'.repeat(x.stars))),h('p',{},x.review))));
+    }catch{drawForm()}};
+  go.onclick=async()=>{
+    if(!stars){err.textContent='Choose a star rating';return}
+    go.disabled=true;err.textContent='';
+    try{await sapi('/apps/'+id+'/rating',{method:'PUT',body:JSON.stringify({stars,review:text.value})});mine={stars,review:text.value};await refresh();loadStats()}
+    catch(e){err.textContent=e.message}
+    go.disabled=false};
+  del.onclick=async()=>{
+    try{await sapi('/apps/'+id+'/rating',{method:'DELETE'});mine=null;stars=0;text.value='';await refresh();loadStats()}
+    catch(e){err.textContent=e.message}};
+  const install=h('a',{class:'install',href:safeApk(l.apkUrl),rel:'noopener'},'Install');
+  install.onclick=()=>{if(cid.me)fetch(STORE_API+'/apps/'+id+'/install',{method:'POST',headers:{Authorization:'Bearer '+cid.me.token},keepalive:true}).catch(()=>{})};
   d.replaceChildren(
-    h('div',{class:'top'},icon(a),h('div',{},h('h2',{},a.name),h('div',{class:'sub'},a.author)),
+    h('div',{class:'top'},icon(a),h('div',{},h('h2',{},a.name),h('div',{class:'sub'},a.author+' · '+cap(a.category))),heart,
       h('button',{class:'x','aria-label':'Close',onclick:()=>d.close()},'✕')),
-    h('a',{class:'install',href:safeApk(l.apkUrl),rel:'noopener'},'Install'),
-    h('div',{class:'stats'},h('div',{},h('b',{},l.version),h('span',{},'Version')),
-      h('div',{},h('b',{},mb(l.sizeBytes)),h('span',{},'Size')),h('div',{},h('b',{},cap(a.category)),h('span',{},'Category'))),
+    install,
+    h('div',{class:'stats'},h('div',{},rB,rS),h('div',{},iB,h('span',{},'Installs')),
+      h('div',{},h('b',{},l.version),h('span',{},'Version')),h('div',{},h('b',{},mb(l.sizeBytes)),h('span',{},'Size'))),
     a.description?h('p',{},a.description):'',
+    h('h3',{},'Ratings & reviews'),form,revs,
     h('h3',{},'Permissions'),
     perms.length?h('div',{class:'perms'},perms.map(p=>h('span',{},p))):h('div',{class:'sub'},'None'),
     h('h3',{},'Signed by'),h('code',{},l.certSha256),
     h('h3',{},'Checksum'),h('code',{},l.sha256));
-  d.showModal();
+  sheetRefresh=refresh;d.showModal();drawForm();refresh();
 }
 $('dlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 function chips(){
   const cats=[...new Set([...CATS,...apps.map(a=>a.category)])],box=$('chips');box.replaceChildren();
-  for(const c of ['',...cats])box.append(h('button',{class:'chip','aria-pressed':String(c===cat),
-    onclick:()=>{cat=c;chips();render()}},c?cap(c):'All'));
+  for(const c of ['',...(cid.me?['__wish']:[]),...cats])box.append(h('button',{class:'chip','aria-pressed':String(c===cat),
+    onclick:()=>{cat=c;chips();render()}},c==='__wish'?'♥ Wishlist':c?cap(c):'All'));
 }
-fetch('store.json').then(r=>r.json()).then(s=>{apps=s.apps;chips();render()})
+fetch('store.json').then(r=>r.json()).then(s=>{apps=s.apps;chips();render();loadWish()})
   .catch(()=>$('grid').append(h('p',{class:'empty'},'Store unavailable')));
 $('q').oninput=render;
+/* ---- Curie ID sign-in ---- */
+const CURIE_API='https://rocurity--40be21cebf4011f199401607ee4eb77e.web.val.run',CURIE_SIGNUP='https://curie-id-c579e.web.app';
+const cid={me:null,alive:false};
+async function capi(path,opts={}){
+  const r=await fetch(CURIE_API+path,{cache:'no-store',...opts,headers:{'Content-Type':'text/plain',...(opts.headers||{})}});
+  return{status:r.status,ok:r.ok,data:await r.json().catch(()=>({}))}}
+function cidDevice(){try{let i=localStorage.getItem('curieDeviceId');if(!i){i='curie-store-web-'+crypto.randomUUID();localStorage.setItem('curieDeviceId',i)}return i}catch{return 'curie-store-web-'+crypto.randomUUID()}}
+function cidSave(v){try{v?localStorage.setItem('curie-session',JSON.stringify(v)):localStorage.removeItem('curie-session')}catch{}}
+function cidLoad(){try{return JSON.parse(localStorage.getItem('curie-session')||'null')}catch{return null}}
+function cidPaint(){const b=$('acct');
+  if(cid.me){b.className='acct on';b.textContent=(cid.me.displayName||cid.me.username||'C')[0].toUpperCase();b.setAttribute('aria-label','Account')}
+  else{b.className='acct';b.textContent='Sign in';b.setAttribute('aria-label','Sign in')}}
+async function cidDone(d0){
+  cid.me={token:d0.accessToken,curieId:d0.curieId};
+  try{const r=await capi('/me',{headers:{Authorization:'Bearer '+d0.accessToken}});
+    if(r.ok){cid.me.displayName=r.data.displayName;cid.me.username=r.data.username}}catch{}
+  cidSave(cid.me);cidPaint();$('auth').close();afterAuth()}
+function cidSignIn(){
+  const d=$('auth');cid.alive=true;
+  const id=h('input',{placeholder:'Curie ID or username',autocomplete:'username',autocapitalize:'none',spellcheck:'false'});
+  const pw=h('input',{type:'password',placeholder:'Password',autocomplete:'current-password'});
+  const err=h('div',{class:'err',role:'alert'}),btn=h('button',{class:'primary wide'},'Sign in');
+  const go=async()=>{
+    const identifier=id.value.trim().toLowerCase();
+    if(!identifier||!pw.value){err.textContent='Enter your Curie ID or username, and password';return}
+    btn.disabled=true;btn.textContent='Signing in';err.textContent='';
+    try{
+      const r=await capi('/login',{method:'POST',body:JSON.stringify({identifier,password:pw.value,deviceId:cidDevice()})});
+      pw.value='';
+      if(r.status===202)return cidWait(r.data);
+      if(!r.ok)throw new Error(r.data.error||'Sign-in failed');
+      await cidDone(r.data);
+    }catch(e){err.textContent=e.message;btn.disabled=false;btn.textContent='Sign in'}};
+  btn.onclick=go;pw.onkeydown=e=>{if(e.key==='Enter')go()};
+  d.replaceChildren(h('h2',{},'Sign in with Curie ID'),id,pw,err,btn,h('a',{class:'link',href:CURIE_SIGNUP,rel:'noopener'},'Create a Curie ID'));
+  d.showModal()}
+function cidWait(info){
+  const d=$('auth'),err=h('div',{class:'err',role:'alert'});
+  d.replaceChildren(h('h2',{},'Approve sign-in'),h('div',{class:'spin'}),
+    h('div',{class:'wait'},'Approve this sign-in on a device where you are already signed in to Curie ID.'),err,
+    info.emailFallback?h('button',{class:'ghost wide',onclick:()=>cidEmail(info)},'Email me a code instead'):'');
+  if(info.autoEmail){cidEmail(info);return}
+  const t0=Date.now();
+  const poll=async()=>{
+    if(!cid.alive)return;
+    try{const r=await capi('/login/status/'+info.approvalId);
+      if(r.data.status==='approved')return cidDone(r.data);
+      if(r.data.status==='denied'){err.textContent='The sign-in was denied or expired.';return}}catch{}
+    if(Date.now()-t0>300000){err.textContent='The request expired. Close this and try again.';return}
+    setTimeout(poll,2500)};
+  poll()}
+async function cidEmail(info){
+  const d=$('auth'),code=h('input',{placeholder:'6-digit code',inputmode:'numeric',autocomplete:'one-time-code',maxlength:'6'});
+  const err=h('div',{class:'err',role:'alert'}),msg=h('div',{class:'wait'},'Sending code'),btn=h('button',{class:'primary wide'},'Verify');
+  d.replaceChildren(h('h2',{},'Enter code'),msg,code,err,btn);
+  const s=await capi('/login/email-code/send',{method:'POST',body:JSON.stringify({approvalId:info.approvalId})}).catch(()=>null);
+  msg.textContent=s&&s.ok?'We sent a code to '+(s.data.maskedEmail||'your email'):(s&&s.data.error)||'Could not send the code';
+  const go=async()=>{btn.disabled=true;err.textContent='';
+    const r=await capi('/login/email-code/verify',{method:'POST',body:JSON.stringify({approvalId:info.approvalId,code:code.value.trim()})}).catch(()=>null);
+    if(r&&r.ok)return cidDone(r.data);
+    err.textContent=(r&&r.data.error)||'Could not verify the code';btn.disabled=false};
+  btn.onclick=go;code.onkeydown=e=>{if(e.key==='Enter')go()}}
+function cidAccount(){
+  const d=$('auth'),m=cid.me;
+  d.replaceChildren(h('h2',{},m.displayName||'Curie ID'),h('div',{class:'wait'},(m.username?'@'+m.username+' · ':'')+m.curieId),
+    h('div',{class:'row'},h('a',{class:'ghost',href:CURIE_SIGNUP,rel:'noopener'},'Manage'),
+      h('button',{class:'primary',onclick:()=>{cid.me=null;cidSave(null);cidPaint();d.close();afterAuth()}},'Sign out')));
+  d.showModal()}
+cid.me=cidLoad();cidPaint();
+if(cid.me)capi('/me',{headers:{Authorization:'Bearer '+cid.me.token}}).then(r=>{if(r.status===401){cid.me=null;cidSave(null);cidPaint()}afterAuth()}).catch(()=>{});
+$('acct').onclick=()=>cid.me?cidAccount():cidSignIn();
+$('auth').addEventListener('close',()=>{cid.alive=false});
+$('dlg').addEventListener('close',()=>{sheetRefresh=null});
+loadStats();
+$('auth').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
 </script>
 </body>
 </html>
