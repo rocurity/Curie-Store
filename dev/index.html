@@ -94,7 +94,7 @@ const ls={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,
 const cap=s=>s[0].toUpperCase()+s.slice(1);
 const mb=b=>b>0?(b/1048576).toFixed(1)+' MB':'-';
 const hue=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))%360,7);
-const AUTH_URL='https://curie-auth.YOUR-SUBDOMAIN.workers.dev';
+const AUTH_URL='https://rocurity--0cb947f0c47211f194491607ee4eb77e.web.val.run';
 let user='',token=ls.get('curie-session')||'',booting=true,authErr='',S={store:null,subs:[],loading:false,error:'',at:0};
 
 function tile(name,id,iconPath,size){
