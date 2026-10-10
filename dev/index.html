@@ -102,7 +102,7 @@ function tile(name,id,iconPath,size){
   box.style.background=`linear-gradient(145deg,hsl(${x} 75% 58%),hsl(${(x+40)%360} 70% 42%))`;
   box.style.width=box.style.height=size+'px';
   if(/^icons\/[\w.\-]+$/.test(iconPath||'')){
-    const i=h('img',{class:'icon',src:'../'+iconPath,alt:''});i.style.width=i.style.height=size+'px';
+    const i=h('img',{class:'icon',src:'../store/'+iconPath,alt:''});i.style.width=i.style.height=size+'px';
     i.onerror=()=>i.replaceWith(box);return i}
   return box}
 
@@ -134,7 +134,7 @@ async function load(){
   const hd={headers:{Accept:'application/vnd.github+json'}};
   try{
     const[store,issues]=await Promise.all([
-      fetch('../store.json').then(r=>r.json()),
+      fetch('../store/store.json').then(r=>r.json()),
       fetch(`${API}/repos/${STORE_REPO}/issues?creator=${encodeURIComponent(user)}&state=all&per_page=50`,hd)
         .then(r=>{if(r.status===403||r.status===429)throw new Error('rate');if(!r.ok)throw new Error('api');return r.json()})]);
     S.store=store;
@@ -176,7 +176,7 @@ function card(m){
       h('div',{class:'sub'},h('a',{href:'https://github.com/'+m.repo,rel:'noopener'},m.repo),l?` · v${l.latest.version} · ${cap(l.category)}`:'')),
     h('span',{class:'pill p-'+k},LABEL[k]));
   const acts=h('div',{class:'actions'});
-  if(l)acts.append(h('a',{class:'btn ghost',href:'../'},'View in store'));
+  if(l)acts.append(h('a',{class:'btn ghost',href:'../store/'},'View in store'));
   if(k==='live')acts.append(h('button',{class:'primary',onclick:()=>openSubmit(m.repo,l&&l.category)},'Submit update'));
   if(k==='failed'||k==='declined')acts.append(h('button',{class:'primary',onclick:()=>openSubmit(m.repo,l&&l.category)},'Resubmit'));
   if(m.hist[0]&&k!=='live')acts.append(h('a',{class:'btn ghost',href:m.hist[0].i.html_url,rel:'noopener'},'View request'));
