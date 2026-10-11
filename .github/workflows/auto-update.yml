@@ -1,0 +1,56 @@
+name: Auto update
+
+# Every 6 hours, look at each app in the store. If its developer published a newer
+# release (same signing key, higher version), it goes live without anyone doing anything.
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pages: write
+
+concurrency:
+  group: store-write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Find Android build tools
+        run: echo "$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)" >> "$GITHUB_PATH"
+
+      - name: Refresh apps
+        shell: bash
+        run: |
+          python3 tools/submit.py --mode update --result "$RUNNER_TEMP/result.json" || true
+          [ -s "$RUNNER_TEMP/result.json" ] || { echo "No result produced"; exit 1; }
+          jq . "$RUNNER_TEMP/result.json"
+          git config user.name "curie-store[bot]"
+          git config user.email "actions@users.noreply.github.com"
+          git add store/store.json
+          [ -d store/icons ] && git add store/icons || true
+          if ! git diff --cached --quiet; then
+            git commit -m "Auto-update apps"
+            git pull --rebase
+            git push
+            gh api -X POST "repos/$GITHUB_REPOSITORY/pages/builds" >/dev/null 2>&1 || true
+          fi
+
+      - name: Report updates that were refused
+        shell: bash
+        run: |
+          jq -c '.failed[]?' "$RUNNER_TEMP/result.json" | while read -r f; do
+            repo=$(jq -r .repo <<<"$f"); tag=$(jq -r .tag <<<"$f"); err=$(jq -r .error <<<"$f")
+            title="Update failed: $repo $tag"
+            found=$(gh issue list --state all --search "\"$title\" in:title" --json number --jq length)
+            if [ "$found" = 0 ]; then
+              gh issue create --title "$title" --body "$(printf 'The release was not added to the store.\n```\n%s\n```' "$err")"
+            fi
+          done
