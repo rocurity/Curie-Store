@@ -28,6 +28,8 @@ jobs:
 
       - name: Refresh apps
         shell: bash
+        env:
+          STRICT: ${{ vars.STRICT_MODE == 'true' }}
         run: |
           python3 tools/submit.py --mode update --result "$RUNNER_TEMP/result.json" || true
           [ -s "$RUNNER_TEMP/result.json" ] || { echo "No result produced"; exit 1; }
