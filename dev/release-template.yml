@@ -1,0 +1,64 @@
+# Curie Store release template.
+# Save this file in your app's repo as .github/workflows/release.yml
+#
+# Every time you push a version tag (for example: git tag v1.2.0 && git push --tags)
+# it builds your app, signs it with YOUR release key, and publishes a GitHub release
+# with the signed APK attached. Curie Store then picks the new version up on its own,
+# within a few hours, as long as the version code is higher and the same key is used.
+#
+# One-time setup: in your repo go to Settings > Secrets and variables > Actions
+# and add these four secrets:
+#   KEYSTORE_BASE64    your keystore file as base64   (run: base64 -w0 release.jks)
+#   KEYSTORE_PASSWORD  the keystore password
+#   KEY_ALIAS          the key alias
+#   KEY_PASSWORD       the key password
+#
+# Change APP_MODULE if your app module is not called "app".
+
+name: Release to Curie Store
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+env:
+  APP_MODULE: app
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Build the release APK
+        run: ./gradlew ":${APP_MODULE}:assembleRelease"
+
+      - name: Sign it with your key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/release.jks"
+          APK=$(ls "$APP_MODULE"/build/outputs/apk/release/*-unsigned.apk | head -1)
+          "$BT/zipalign" -p 4 "$APK" "$RUNNER_TEMP/aligned.apk"
+          "$BT/apksigner" sign --ks "$RUNNER_TEMP/release.jks" --ks-key-alias "$KEY_ALIAS" \
+            --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEY_PASSWORD \
+            --out app-release.apk "$RUNNER_TEMP/aligned.apk"
+          "$BT/apksigner" verify --print-certs app-release.apk
+          rm -f "$RUNNER_TEMP/release.jks"
+
+      - name: Publish the release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: app-release.apk

@@ -110,7 +110,7 @@ function status(i,inStore){
   const labels=i.labels.map(l=>l.name);
   if(i.state==='closed')return inStore?{k:'live'}:{k:'declined',reason:'This request was closed without being added.'};
   if(labels.includes('approved'))return{k:'publishing'};
-  const fail=[...(i._comments||[])].reverse().find(c=>c.body.startsWith('Not added'));
+  const lastC=(i._comments||[]).slice(-1)[0],fail=lastC&&lastC.body.startsWith('Not added')?lastC:null;
   if(fail){const ls2=fail.body.split('\n').map(x=>x.trim()).filter(x=>x&&!x.startsWith('Not added')&&!x.startsWith('```'));
     return{k:'failed',reason:ls2[ls2.length-1]||'The check failed.'}}
   return{k:'review'}}
@@ -182,7 +182,7 @@ function card(m){
   if(m.hist[0]&&k!=='live')acts.append(h('a',{class:'btn ghost',href:m.hist[0].i.html_url,rel:'noopener'},'View request'));
   const fmt=d=>new Date(d).toLocaleDateString(undefined,{month:'short',day:'numeric'});
   return h('article',{class:'card'},head,
-    k==='live'?null:track(m.cur),
+    k==='live'?h('p',{class:'note'},'New releases go live automatically within a few hours.'):track(m.cur),
     m.cur.reason?h('div',{class:'reason'},m.cur.reason):null,
     acts.children.length?acts:null,
     l?h('details',{},h('summary',{},'App details'),h('div',{class:'kv'},
@@ -200,7 +200,8 @@ function guide(open){
     li('Create a repository',['Click ',a('https://github.com/new','New'),' and name it after your app']),
     li('Build a signed release APK',['Android Studio: Build, Generate Signed App Bundle / APK, APK. Debug builds are rejected']),
     li('Publish a release',['On your repo: Releases, Draft a new release, attach the APK, Publish. One APK per release']),
-    li('Submit your repo',['Press New app here. We review it and add it to the store'])),
+    li('Submit your repo',['Press New app here. New developers are reviewed once; after that, apps and updates go live automatically']),
+    li('Release updates',['Publish a new release with a higher version code. Or ',a('release-template.yml','use this template'),' to build, sign and release on every tag'])),
     h('p',{class:'note'},'Keep your signing key safe. Every update must be signed with the same key.'));
   if(open)d.open=true;return d}
 
