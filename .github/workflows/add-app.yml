@@ -42,6 +42,7 @@ jobs:
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
           ACTION: ${{ github.event.action }}
+          STRICT: ${{ vars.STRICT_MODE == 'true' }}
         run: |
           MODE=check
           [ "$ACTION" = labeled ] && MODE=publish
@@ -56,6 +57,7 @@ jobs:
         env:
           ISSUE_BODY: ${{ github.event.issue.body }}
           ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          STRICT: ${{ vars.STRICT_MODE == 'true' }}
         run: python3 tools/submit.py --mode publish --from-issue --result "$RUNNER_TEMP/result.json" --comment "$RUNNER_TEMP/comment.md" || true
 
       - name: Save to the store
