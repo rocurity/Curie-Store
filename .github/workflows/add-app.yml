@@ -1,108 +1,92 @@
-name: Add app
+name: Submissions
 
+# Runs when a developer submits an app (issue titled "Submit: owner/app"),
+# and when the store owner adds the "approved" label to a request.
 on:
   issues:
-    types: [labeled]
+    types: [opened, edited, labeled]
 
 permissions:
   contents: write
   issues: write
+  pages: write
 
 concurrency:
-  group: add-app
+  group: store-write
 
 jobs:
-  add:
-    # Runs only when the repo owner adds the "approved" label to a submission.
+  submission:
     if: >-
-      github.event.label.name == 'approved' &&
-      github.event.sender.login == github.repository_owner &&
-      startsWith(github.event.issue.title, 'Submit:')
+      github.event.issue.state == 'open' &&
+      startsWith(github.event.issue.title, 'Submit:') &&
+      (github.event.action != 'labeled' ||
+       (github.event.label.name == 'approved' && github.event.sender.login == github.repository_owner))
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
-      LOG: ${{ runner.temp }}/log.txt
       NUM: ${{ github.event.issue.number }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Read the request
-        id: req
+      - name: Prepare
+        shell: bash
+        run: |
+          echo "$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)" >> "$GITHUB_PATH"
+          gh label create approved --color 2da44e --description "Approved for the store" 2>/dev/null || true
+          gh label create needs-review --color d29922 --description "Checks passed, waiting for the store owner" 2>/dev/null || true
+
+      - name: Check the request
+        id: check
         shell: bash
         env:
-          BODY: ${{ github.event.issue.body }}
-          AUTHOR: ${{ github.event.issue.user.login }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+          ACTION: ${{ github.event.action }}
         run: |
-          exec > >(tee -a "$LOG") 2>&1
-          python3 - <<'PY'
-          import os, re, sys
-          body = os.environ["BODY"]
-          def field(k):
-              m = re.search(rf"^{k}:[ \t]*(.*)$", body, re.M)
-              return m.group(1).strip() if m else ""
-          repo = field("repo")
-          if not re.fullmatch(r"[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+", repo):
-              sys.exit("Invalid repo name")
-          if repo.split("/")[0].lower() != os.environ["AUTHOR"].lower():
-              sys.exit("The request must come from the owner of the repo")
-          cat = field("category").lower()
-          if cat not in {"tools", "productivity", "media", "games", "social", "education", "security"}:
-              cat = "tools"
-          desc = re.sub(r"\s+", " ", field("description"))[:160]
-          with open(os.environ["GITHUB_OUTPUT"], "a") as o:
-              o.write(f"repo={repo}\ncategory={cat}\ndesc={desc}\n")
-          PY
+          MODE=check
+          [ "$ACTION" = labeled ] && MODE=publish
+          python3 tools/submit.py --mode "$MODE" --from-issue --result "$RUNNER_TEMP/result.json" --comment "$RUNNER_TEMP/comment.md" || true
+          echo "mode=$MODE" >> "$GITHUB_OUTPUT"
+          echo "ok=$(jq -r '.ok // false' "$RUNNER_TEMP/result.json" 2>/dev/null || echo false)" >> "$GITHUB_OUTPUT"
+          echo "trusted=$(jq -r '.trusted // false' "$RUNNER_TEMP/result.json" 2>/dev/null || echo false)" >> "$GITHUB_OUTPUT"
 
-      - name: Find Android build tools
-        run: echo "$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)" >> "$GITHUB_PATH"
-
-      - name: Download the release APK
-        id: dl
+      - name: Publish automatically (developer already in the store)
+        if: steps.check.outputs.mode == 'check' && steps.check.outputs.ok == 'true' && steps.check.outputs.trusted == 'true'
         shell: bash
         env:
-          REPO: ${{ steps.req.outputs.repo }}
-        run: |
-          exec > >(tee -a "$LOG") 2>&1
-          mkdir dl
-          TAG=$(gh release view -R "$REPO" --json tagName -q .tagName)
-          gh release download "$TAG" -R "$REPO" --pattern '*.apk' --dir dl
-          [ "$(ls dl | wc -l)" = 1 ] || { echo "The release must contain exactly one APK"; exit 1; }
-          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
-          echo "apk=$(ls dl/*.apk)" >> "$GITHUB_OUTPUT"
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_AUTHOR: ${{ github.event.issue.user.login }}
+        run: python3 tools/submit.py --mode publish --from-issue --result "$RUNNER_TEMP/result.json" --comment "$RUNNER_TEMP/comment.md" || true
 
-      - name: Verify and index
-        shell: bash
-        env:
-          REPO: ${{ steps.req.outputs.repo }}
-          CAT: ${{ steps.req.outputs.category }}
-          DESC: ${{ steps.req.outputs.desc }}
-          TAG: ${{ steps.dl.outputs.tag }}
-          APK: ${{ steps.dl.outputs.apk }}
-        run: |
-          exec > >(tee -a "$LOG") 2>&1
-          python3 tools/index_apk.py "$APK" --repo "$REPO" --tag "$TAG" \
-            --category "$CAT" --description "$DESC" --store store/store.json
-
-      - name: Publish
-        shell: bash
-        env:
-          REPO: ${{ steps.req.outputs.repo }}
-          TAG: ${{ steps.dl.outputs.tag }}
-        run: |
-          git config user.name "curie-store[bot]"
-          git config user.email "actions@users.noreply.github.com"
-          git add store/store.json
-          [ -d store/icons ] && git add store/icons || true
-          git commit -m "Add $REPO $TAG"
-          git pull --rebase
-          git push
-          gh issue comment "$NUM" -R "$GITHUB_REPOSITORY" --body "Added: $REPO $TAG"
-          gh issue close "$NUM" -R "$GITHUB_REPOSITORY"
-
-      - name: Report failure
-        if: failure()
+      - name: Save to the store
         shell: bash
         run: |
-          { echo "Not added."; echo '```'; tail -n 15 "$LOG" 2>/dev/null; echo '```'; } > msg.md
-          gh issue comment "$NUM" -R "$GITHUB_REPOSITORY" --body-file msg.md
-          gh issue edit "$NUM" -R "$GITHUB_REPOSITORY" --remove-label approved
+          if [ "$(jq -r '.published // false' "$RUNNER_TEMP/result.json" 2>/dev/null)" = true ]; then
+            git config user.name "curie-store[bot]"
+            git config user.email "actions@users.noreply.github.com"
+            git add store/store.json
+            [ -d store/icons ] && git add store/icons || true
+            git commit -m "Add $(jq -r '.summary.repo + " " + .summary.tag' "$RUNNER_TEMP/result.json")"
+            git pull --rebase
+            git push
+            gh api -X POST "repos/$GITHUB_REPOSITORY/pages/builds" >/dev/null 2>&1 || true
+          fi
+
+      - name: Reply
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -s "$RUNNER_TEMP/comment.md" ]; then
+            printf 'Not added.\n```\nSomething went wrong on the store side. The store owner can see the details in the workflow log.\n```' > "$RUNNER_TEMP/comment.md"
+            echo '{"ok":false}' > "$RUNNER_TEMP/result.json"
+          fi
+          gh issue comment "$NUM" --body-file "$RUNNER_TEMP/comment.md"
+          OK=$(jq -r '.ok // false' "$RUNNER_TEMP/result.json")
+          PUBLISHED=$(jq -r '.published // false' "$RUNNER_TEMP/result.json")
+          if [ "$OK" = true ] && [ "$PUBLISHED" = true ]; then
+            gh issue close "$NUM"
+          elif [ "$OK" = true ]; then
+            gh issue edit "$NUM" --add-label needs-review
+          else
+            gh issue edit "$NUM" --remove-label approved 2>/dev/null || true
+          fi
