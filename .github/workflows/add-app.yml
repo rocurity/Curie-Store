@@ -61,6 +61,7 @@ jobs:
         run: python3 tools/submit.py --mode publish --from-issue --result "$RUNNER_TEMP/result.json" --comment "$RUNNER_TEMP/comment.md" || true
 
       - name: Save to the store
+        id: save
         shell: bash
         run: |
           if [ "$(jq -r '.published // false' "$RUNNER_TEMP/result.json" 2>/dev/null)" = true ]; then
@@ -77,14 +78,21 @@ jobs:
       - name: Reply
         if: always()
         shell: bash
+        env:
+          SAVE_OUTCOME: ${{ steps.save.outcome }}
         run: |
           if [ ! -s "$RUNNER_TEMP/comment.md" ]; then
             printf 'Not added.\n```\nSomething went wrong on the store side. The store owner can see the details in the workflow log.\n```' > "$RUNNER_TEMP/comment.md"
             echo '{"ok":false}' > "$RUNNER_TEMP/result.json"
           fi
-          gh issue comment "$NUM" --body-file "$RUNNER_TEMP/comment.md"
           OK=$(jq -r '.ok // false' "$RUNNER_TEMP/result.json")
           PUBLISHED=$(jq -r '.published // false' "$RUNNER_TEMP/result.json")
+          # Never say "Added" unless the store file was really saved
+          if [ "$PUBLISHED" = true ] && [ "$SAVE_OUTCOME" != success ]; then
+            printf 'Not added.\n```\nThe app passed all checks, but saving it to the store failed. The store owner can see the details in the workflow log.\n```' > "$RUNNER_TEMP/comment.md"
+            OK=false
+          fi
+          gh issue comment "$NUM" --body-file "$RUNNER_TEMP/comment.md"
           if [ "$OK" = true ] && [ "$PUBLISHED" = true ]; then
             gh issue close "$NUM"
           elif [ "$OK" = true ]; then
