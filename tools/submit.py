@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Check, publish or refresh apps in store/store.json using GitHub releases (needs the gh CLI).
+"""Check, publish or refresh apps in store/store.json using GitHub (needs the gh CLI).
 
-  --mode check    download the repo's latest release APK and run every check, without changing the store
+  --mode check    find the repo's APK and run every check, without changing the store
   --mode publish  same, then add the app to the store
-  --mode update   look at every listed app and publish newer releases (same signing key only)
+  --mode update   look at every listed app and publish newer versions (same signing key only)
+
+The APK is taken from the repo's latest release. If the repo has no release, an .apk file in the
+repo's top folder is used instead. Easy mode is the default: any app can be published and debug
+builds are allowed (they get a "Debug build" label). Set STRICT=true to require a review for new
+developers and to refuse debug builds.
 
 For check/publish the request comes from a store issue: --from-issue reads ISSUE_BODY and ISSUE_AUTHOR.
 Writes a JSON result (--result) and a Markdown comment for the issue (--comment).
@@ -14,37 +19,72 @@ sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
 import index_apk as ix
 
 REPO_RE = re.compile(r"^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$")
+STRICT = os.environ.get("STRICT", "false").strip().lower() == "true"
 
 
-def gh(*args):
-    r = subprocess.run(["gh", *args], capture_output=True, text=True)
+def gh(*args, binary=False):
+    r = subprocess.run(["gh", *args], capture_output=True, text=not binary)
     if r.returncode:
-        lines = (r.stderr or r.stdout).strip().splitlines()
+        err = r.stderr if not binary else r.stderr.decode("utf-8", "replace")
+        out = r.stdout if not binary else b""
+        lines = (err or (out if not binary else "")).strip().splitlines()
         raise ix.Rejected((lines[-1] if lines else "GitHub request failed")[:200])
     return r.stdout
 
 
-def latest_tag(repo):
+def pick_apk(names):
+    """Several APKs? Prefer a universal one, then 64-bit ARM, then the first by name."""
+    names = sorted(names)
+    for key in ("universal", "arm64"):
+        for n in names:
+            if key in n.lower():
+                return n
+    return names[0]
+
+
+def find_source(repo):
+    """Where is the APK? ('release', tag) or ('file', path, blob_sha)."""
     try:
         tag = gh("release", "view", "-R", repo, "--json", "tagName", "-q", ".tagName").strip()
     except ix.Rejected:
-        raise ix.Rejected(f"No published release found on {repo}. Publish a release with your signed APK first")
-    if not tag:
-        raise ix.Rejected(f"No published release found on {repo}")
-    return tag
+        tag = ""
+    if tag:
+        return ("release", tag)
+    try:
+        files = json.loads(gh("api", f"repos/{repo}/contents", "--jq",
+                              '[.[] | select(.type=="file" and (.name|endswith(".apk"))) | {name, sha}]') or "[]")
+    except (ix.Rejected, ValueError):
+        files = []
+    if not files:
+        raise ix.Rejected(f"Nothing to publish on {repo}. Put your APK in a GitHub release, or in the repo's top folder")
+    name = pick_apk([f["name"] for f in files])
+    return ("file", name, next(f["sha"] for f in files if f["name"] == name))
 
 
-def fetch_release(repo, workdir):
-    tag = latest_tag(repo)
+def source_id(src):
+    return f"release:{src[1]}" if src[0] == "release" else f"file:{src[2]}"
+
+
+def fetch_apk(repo, src, workdir):
+    """Download the APK. Returns (tag, path, apk_url, source_id)."""
     d = pathlib.Path(workdir) / re.sub(r"[^\w.-]", "_", repo)
     d.mkdir(parents=True, exist_ok=True)
-    gh("release", "download", tag, "-R", repo, "--pattern", "*.apk", "--dir", str(d))
-    apks = sorted(d.glob("*.apk"))
-    if not apks:
-        raise ix.Rejected("The latest release has no APK attached")
-    if len(apks) > 1:
-        raise ix.Rejected("The release must contain exactly one APK")
-    return tag, apks[0]
+    if src[0] == "release":
+        tag = src[1]
+        gh("release", "download", tag, "-R", repo, "--pattern", "*.apk", "--dir", str(d))
+        apks = sorted(d.glob("*.apk"))
+        if not apks:
+            raise ix.Rejected("The latest release has no APK attached")
+        chosen = next(p for p in apks if p.name == pick_apk([p.name for p in apks]))
+        return tag, chosen, None, source_id(src)
+    _, name, blob = src
+    commit = gh("api", f"repos/{repo}/commits/HEAD", "--jq", ".sha").strip()
+    if not re.fullmatch(r"[0-9a-f]{40}", commit):
+        raise ix.Rejected("Could not read the repo's latest commit")
+    data = gh("api", f"repos/{repo}/contents/{name}", "-H", "Accept: application/vnd.github.raw", binary=True)
+    path = d / name
+    path.write_bytes(data)
+    return f"file-{blob[:7]}", path, f"https://github.com/{repo}/raw/{commit}/{name}", source_id(src)
 
 
 def parse_issue():
@@ -63,7 +103,9 @@ def parse_issue():
 
 
 def is_trusted(store, repo):
-    """A developer who already has an app in the store skips the manual review."""
+    """Easy mode: everyone. Strict mode: only developers who already have an app in the store."""
+    if not STRICT:
+        return True
     owner = repo.split("/")[0].lower()
     return any(a["repo"].split("/")[0].lower() == owner for a in store["apps"])
 
@@ -74,6 +116,7 @@ def mb(n):
 
 def review_comment(s, trusted):
     perms = ", ".join(p.rsplit(".", 1)[-1] for p in s["permissions"]) or "none"
+    where = f"https://github.com/{s['repo']}/releases/tag/{s['tag']}" if s["source"].startswith("release:") else f"a file in https://github.com/{s['repo']}"
     lines = ["**Checks passed**", "",
              "| | |", "|---|---|",
              f"| App | {s['name']} (`{s['id']}`) |",
@@ -82,7 +125,9 @@ def review_comment(s, trusted):
              f"| Category | {s['category']} |",
              f"| Signing key | `{s['certSha256']}` |",
              f"| Permissions | {perms} |",
-             f"| Source | https://github.com/{s['repo']}/releases/tag/{s['tag']} |", ""]
+             f"| Source | {where} |", ""]
+    if s["debug"]:
+        lines += ["This is a **debug build**. It is listed with a Debug label.", ""]
     if s["sensitive"]:
         lines += [f"Sensitive permissions to look at: **{', '.join(s['sensitive'])}**", ""]
     lines += ["This is a new developer. Add the `approved` label to publish it."] if not trusted else []
@@ -106,14 +151,21 @@ def do_submission(a):
     store = json.loads(store_path.read_text())
     trusted = is_trusted(store, repo)
     with tempfile.TemporaryDirectory() as tmp:
-        tag, apk = fetch_release(repo, tmp)
-        s = ix.index_apk(apk, repo, tag, store_path, author=repo.split("/")[0], category=cat,
-                         description=desc, dry_run=(a.mode == "check"))
+        tag, apk, url, sid = fetch_apk(repo, find_source(repo), tmp)
+        s = ix.index_apk(apk, repo, tag, store_path, author=repo.split("/")[0], category=cat, description=desc,
+                         dry_run=(a.mode == "check"), allow_debug=not STRICT, apk_url=url, source=sid)
     published = a.mode == "publish"
-    comment = f"Added: {s['name']} {s['version']}" if published else review_comment(s, trusted)
+    comment = f"Added: {s['name']} {s['version']}" + (" (debug build)" if s["debug"] else "") if published else review_comment(s, trusted)
     if not published and trusted:
-        comment = comment.replace("**Checks passed**", "**Checks passed.** This developer already has an app in the store, so it is published automatically.")
+        comment = comment.replace("**Checks passed**", "**Checks passed.** It is published automatically.")
     return {"ok": True, "mode": a.mode, "trusted": trusted, "published": published, "summary": s}, comment
+
+
+def current_source(app):
+    if app.get("source"):
+        return app["source"]
+    m = re.search(r"/download/([^/]+)/", app["latest"]["apkUrl"])
+    return f"release:{m.group(1)}" if m else ""
 
 
 def do_update(a):
@@ -122,20 +174,20 @@ def do_update(a):
     res = {"ok": True, "mode": "update", "updated": [], "failed": [], "skipped": 0}
     with tempfile.TemporaryDirectory() as tmp:
         for app in list(store["apps"]):
-            repo = app["repo"]
+            repo, tag = app["repo"], "?"
             try:
-                tag = latest_tag(repo)
-                cur = re.search(r"/download/([^/]+)/", app["latest"]["apkUrl"])
-                if cur and cur.group(1) == tag:
+                src = find_source(repo)
+                if source_id(src) == current_source(app):
                     res["skipped"] += 1
                     continue
-                tag, apk = fetch_release(repo, tmp)
-                s = ix.index_apk(apk, repo, tag, store_path, author=app.get("author"), category=app["category"])
+                tag, apk, url, sid = fetch_apk(repo, src, tmp)
+                s = ix.index_apk(apk, repo, tag, store_path, author=app.get("author"), category=app["category"],
+                                 allow_debug=not STRICT, apk_url=url, source=sid)
                 res["updated"].append({"repo": repo, "tag": tag, "version": s["version"]})
             except ix.Rejected as e:
-                res["failed"].append({"repo": repo, "tag": locals().get("tag", "?"), "error": str(e)})
+                res["failed"].append({"repo": repo, "tag": tag, "error": str(e)})
             except Exception as e:  # network trouble must not stop the other apps
-                res["failed"].append({"repo": repo, "tag": "?", "error": f"Unexpected error: {e}"[:300]})
+                res["failed"].append({"repo": repo, "tag": tag, "error": f"Unexpected error: {e}"[:300]})
     return res, ""
 
 
@@ -152,7 +204,7 @@ def main():
     except ix.Rejected as e:
         result, comment = {"ok": False, "mode": a.mode, "error": str(e)}, fail_comment(str(e))
     except Exception as e:
-        result, comment = {"ok": False, "mode": a.mode, "error": f"Unexpected error: {e}"}, fail_comment("Unexpected error. The store owner has been notified in the workflow log.")
+        result, comment = {"ok": False, "mode": a.mode, "error": f"Unexpected error: {e}"}, fail_comment("Unexpected error. The store owner can see the details in the workflow log.")
     write(a.result, json.dumps(result, indent=2))
     write(a.comment, comment)
     print(json.dumps(result, indent=2))

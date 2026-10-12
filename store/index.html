@@ -175,7 +175,7 @@ function show(a){
   const install=h('a',{class:'install',href:safeApk(l.apkUrl),rel:'noopener'},'Install');
   install.onclick=()=>{if(cid.me)fetch(STORE_API+'/apps/'+id+'/install',{method:'POST',headers:{Authorization:'Bearer '+cid.me.token},keepalive:true}).catch(()=>{})};
   d.replaceChildren(
-    h('div',{class:'top'},icon(a),h('div',{},h('h2',{},a.name),h('div',{class:'sub'},a.author+' · '+cap(a.category))),heart,
+    h('div',{class:'top'},icon(a),h('div',{},h('h2',{},a.name),h('div',{class:'sub'},a.author+' · '+cap(a.category)+(a.debug?' · Debug build':''))),heart,
       h('button',{class:'x','aria-label':'Close',onclick:()=>d.close()},'✕')),
     install,
     h('div',{class:'stats'},h('div',{},rB,rS),h('div',{},iB,h('span',{},'Installs')),

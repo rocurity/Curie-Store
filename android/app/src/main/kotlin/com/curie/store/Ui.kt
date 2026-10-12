@@ -34,7 +34,7 @@ data class StoreApp(
     val id: String, val name: String, val author: String, val category: String,
     val description: String, val iconUrl: String?, val version: String, val versionCode: Int,
     val apkUrl: String, val sha256: String, val certSha256: String, val size: Long,
-    val permissions: List<String>,
+    val permissions: List<String>, val debug: Boolean = false,
 )
 
 class Pal(c: Context) {

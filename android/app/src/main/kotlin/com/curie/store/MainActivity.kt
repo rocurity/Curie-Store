@@ -175,6 +175,7 @@ class MainActivity : Activity() {
                     l.getString("version"), l.getInt("versionCode"), l.getString("apkUrl"),
                     l.getString("sha256"), l.getString("certSha256"), l.getLong("sizeBytes"),
                     (0 until p.length()).map { i -> p.getString(i) },
+                    debug = o.optBoolean("debug", false),
                 )
             }
             runOnUiThread { apps = out; buildChips(); applyFilter() }
@@ -253,7 +254,7 @@ class MainActivity : Activity() {
         top.addView(iconBox(app, 76), LinearLayout.LayoutParams(dp(76), dp(76)))
         val names = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; setPadding(dp(16), 0, dp(8), 0) }
         names.addView(label(app.name, 21f, pal.ink, true))
-        names.addView(label("${app.author} · ${app.category.cap()}", 14f, pal.mute))
+        names.addView(label("${app.author} · ${app.category.cap()}" + (if (app.debug) " · Debug build" else ""), 14f, pal.mute))
         top.addView(names, LinearLayout.LayoutParams(0, -2, 1f))
         val heart = label(if (wish.contains(app.id)) "♥" else "♡", 18f, pal.ink).apply {
             gravity = Gravity.CENTER; background = pill(pal.chip, dpf(40))

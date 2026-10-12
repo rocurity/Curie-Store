@@ -32,7 +32,7 @@ def run(cmd):
 
 
 def index_apk(apk, repo, tag, store_path, author=None, category="tools", description="",
-              allow_key_change=False, dry_run=False):
+              allow_key_change=False, dry_run=False, allow_debug=True, apk_url=None, source=None):
     """Check an APK and add it to the store index. Returns a summary dict. Raises Rejected."""
     apk = pathlib.Path(apk)
     store_path = pathlib.Path(store_path)
@@ -55,7 +55,8 @@ def index_apk(apk, repo, tag, store_path, author=None, category="tools", descrip
     if not c:
         raise Rejected("Could not read the signing certificate")
     cert = c.group(1).lower()
-    if "CN=Android Debug" in certs:
+    debug = "CN=Android Debug" in certs
+    if debug and not allow_debug:
         raise Rejected("REJECTED: the APK is signed with a debug key. Sign it with your own release key")
 
     store = json.loads(store_path.read_text())
@@ -87,11 +88,14 @@ def index_apk(apk, repo, tag, store_path, author=None, category="tools", descrip
         "category": category if not old else old["category"],
         "latest": {
             "version": vname, "versionCode": vcode,
-            "apkUrl": f"https://github.com/{repo}/releases/download/{tag}/{apk.name}",
+            "apkUrl": apk_url or f"https://github.com/{repo}/releases/download/{tag}/{apk.name}",
             "sha256": sha, "certSha256": cert, "sizeBytes": apk.stat().st_size, "permissions": perms,
         },
         "icon": icon or (old or {}).get("icon", ""),
+        "source": source or f"release:{tag}",
     }
+    if debug:
+        entry["debug"] = True
     if not dry_run:
         store["apps"] = [x for x in store["apps"] if x["id"] != app_id] + [entry]
         store["updated"] = datetime.date.today().isoformat()
@@ -102,7 +106,7 @@ def index_apk(apk, repo, tag, store_path, author=None, category="tools", descrip
         "sensitive": [p.rsplit(".", 1)[-1] for p in perms if p.rsplit(".", 1)[-1] in SENSITIVE],
         "certSha256": cert, "sha256": sha, "sizeBytes": apk.stat().st_size, "category": entry["category"],
         "isUpdate": bool(old), "previousVersion": old["latest"]["version"] if old else None,
-        "tag": tag, "repo": repo,
+        "tag": tag, "repo": repo, "debug": debug, "source": entry["source"], "apkUrl": entry["latest"]["apkUrl"],
     }
 
 
@@ -112,9 +116,11 @@ def main():
     ap.add_argument("--author"); ap.add_argument("--category", default="tools")
     ap.add_argument("--description", default=""); ap.add_argument("--store", default="store/store.json")
     ap.add_argument("--allow-key-change", action="store_true")
+    ap.add_argument("--strict", action="store_true", help="refuse debug-signed APKs")
     a = ap.parse_args()
     try:
-        s = index_apk(a.apk, a.repo, a.tag, a.store, a.author, a.category, a.description, a.allow_key_change)
+        s = index_apk(a.apk, a.repo, a.tag, a.store, a.author, a.category, a.description, a.allow_key_change,
+                      allow_debug=not a.strict)
     except Rejected as e:
         sys.exit(str(e))
     print(f"Indexed {s['name']} {s['version']} ({s['id']})\n  cert {s['certSha256']}\n  sha256 {s['sha256']}")
