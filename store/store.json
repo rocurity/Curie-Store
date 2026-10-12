@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-10-09",
+  "updated": "2026-10-12",
   "apps": [
     {
       "id": "com.example.hello",
@@ -16,8 +16,49 @@
         "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
         "certSha256": "1111111111111111111111111111111111111111111111111111111111111111",
         "sizeBytes": 2457600,
-        "permissions": ["android.permission.INTERNET", "android.permission.CAMERA"]
+        "permissions": [
+          "android.permission.INTERNET",
+          "android.permission.CAMERA"
+        ]
       }
+    },
+    {
+      "id": "com.insaka.lite",
+      "name": "INSAKA",
+      "author": "rocurity",
+      "repo": "rocurity/insaka",
+      "description": "",
+      "category": "social",
+      "latest": {
+        "version": "0.6",
+        "versionCode": 6,
+        "apkUrl": "https://github.com/rocurity/insaka/releases/download/social/app-arm64-v8a-debug.apk",
+        "sha256": "87e3a94c5e3c633e58f89feb0eef5eae58e355e559f5cf845e9a8d89db9dd319",
+        "certSha256": "00e232ab73e29b51bba3dd76eece696a32fba983bf1af655e3c1a731a879cbef",
+        "sizeBytes": 18160923,
+        "permissions": [
+          "android.permission.ACCESS_NETWORK_STATE",
+          "android.permission.CAMERA",
+          "android.permission.FOREGROUND_SERVICE",
+          "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+          "android.permission.INTERNET",
+          "android.permission.MODIFY_AUDIO_SETTINGS",
+          "android.permission.POST_NOTIFICATIONS",
+          "android.permission.READ_EXTERNAL_STORAGE",
+          "android.permission.READ_MEDIA_IMAGES",
+          "android.permission.RECORD_AUDIO",
+          "android.permission.USE_FULL_SCREEN_INTENT",
+          "android.permission.VIBRATE",
+          "android.permission.WAKE_LOCK",
+          "android.permission.WRITE_EXTERNAL_STORAGE",
+          "com.google.android.c2dm.permission.RECEIVE",
+          "com.google.android.providers.gsf.permission.READ_GSERVICES",
+          "com.insaka.lite.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        ]
+      },
+      "icon": "",
+      "source": "release:social",
+      "debug": true
     }
   ]
 }
