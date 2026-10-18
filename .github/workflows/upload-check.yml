@@ -1,0 +1,61 @@
+name: Check uploads
+
+# Runs when a developer publishes an app from the Curie Store dashboard.
+# The store backend wakes this up (repository_dispatch). The checker never writes to this repo:
+# it only reads the uploaded APK and reports facts back to the store backend.
+on:
+  repository_dispatch:
+    types: [upload]
+  workflow_dispatch:
+    inputs:
+      id:
+        description: Submission id to check again
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upload-${{ github.event.client_payload.id || inputs.id }}
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SUBMISSION_ID: ${{ github.event.client_payload.id || inputs.id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Find Android build tools
+        run: echo "$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)" >> "$GITHUB_PATH"
+
+      # Step 1: has the secret, never opens the APK
+      - name: Get the submission
+        env:
+          STORE_API_URL: ${{ vars.STORE_API_URL }}
+          INTERNAL_SECRET: ${{ secrets.INTERNAL_SECRET }}
+        run: python3 tools/upload_check.py fetch --id "$SUBMISSION_ID" --out "$RUNNER_TEMP/submission.json"
+
+      # Step 2: opens the untrusted APK, has NO secret
+      - name: Check the APK
+        env:
+          B2_ENDPOINT: ${{ vars.B2_ENDPOINT }}
+          STRICT: ${{ vars.STRICT_MODE == 'true' }}
+        run: python3 tools/upload_check.py analyze --submission "$RUNNER_TEMP/submission.json" --out "$RUNNER_TEMP/analysis.json"
+
+      # Step 3: has the secret, only sends facts back
+      - name: Report the result
+        env:
+          STORE_API_URL: ${{ vars.STORE_API_URL }}
+          INTERNAL_SECRET: ${{ secrets.INTERNAL_SECRET }}
+        run: python3 tools/upload_check.py report --submission "$RUNNER_TEMP/submission.json" --analysis "$RUNNER_TEMP/analysis.json"
+
+      - name: Tell the developer if the checker itself broke
+        if: failure()
+        env:
+          STORE_API_URL: ${{ vars.STORE_API_URL }}
+          INTERNAL_SECRET: ${{ secrets.INTERNAL_SECRET }}
+        run: python3 tools/upload_check.py fail --id "$SUBMISSION_ID" --message "The checker could not finish. Please upload again, or tell the store owner."
