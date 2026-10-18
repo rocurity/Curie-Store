@@ -31,14 +31,9 @@ def run(cmd):
     return r.stdout
 
 
-def index_apk(apk, repo, tag, store_path, author=None, category="tools", description="",
-              allow_key_change=False, dry_run=False, allow_debug=True, apk_url=None, source=None):
-    """Check an APK and add it to the store index. Returns a summary dict. Raises Rejected."""
+def inspect_apk(apk, allow_debug=True):
+    """Read an APK with aapt2 and apksigner. Returns what the store needs to know. Raises Rejected."""
     apk = pathlib.Path(apk)
-    store_path = pathlib.Path(store_path)
-    if not APK_NAME_RE.match(apk.name):
-        raise Rejected("The APK file name may only contain letters, numbers, dots, dashes and underscores")
-
     badging = run(["aapt2", "dump", "badging", str(apk)])
     pkg = re.search(r"package: name='([^']+)' versionCode='(\d+)' versionName='([^']*)'", badging)
     if not pkg:
@@ -49,15 +44,40 @@ def index_apk(apk, repo, tag, store_path, author=None, category="tools", descrip
     m = re.search(r"application-label:'([^']*)'", badging)
     label = (m.group(1) if m else app_id).strip()[:60] or app_id
     perms = sorted(set(re.findall(r"uses-permission: name='([^']+)'", badging)))
-
     certs = run(["apksigner", "verify", "--print-certs", str(apk)])
     c = re.search(r"certificate SHA-256 digest: ([0-9a-fA-F]+)", certs)
     if not c:
         raise Rejected("Could not read the signing certificate")
-    cert = c.group(1).lower()
     debug = "CN=Android Debug" in certs
     if debug and not allow_debug:
         raise Rejected("REJECTED: the APK is signed with a debug key. Sign it with your own release key")
+    cands = re.findall(r"application-icon-(\d+):'([^']+\.(?:png|webp))'", badging)
+    icon_path = max(cands, key=lambda x: int(x[0]))[1] if cands else None
+    return {"app_id": app_id, "label": label, "vcode": vcode, "vname": vname, "perms": perms,
+            "cert": c.group(1).lower(), "debug": debug, "icon_path": icon_path}
+
+
+def read_icon(apk, icon_path):
+    """The launcher icon bytes from inside the APK, or None."""
+    if not icon_path:
+        return None
+    try:
+        with zipfile.ZipFile(apk) as z:
+            return z.read(icon_path)
+    except Exception:
+        return None
+
+
+def index_apk(apk, repo, tag, store_path, author=None, category="tools", description="",
+              allow_key_change=False, dry_run=False, allow_debug=True, apk_url=None, source=None):
+    """Check an APK and add it to the store index. Returns a summary dict. Raises Rejected."""
+    apk = pathlib.Path(apk)
+    store_path = pathlib.Path(store_path)
+    if not APK_NAME_RE.match(apk.name):
+        raise Rejected("The APK file name may only contain letters, numbers, dots, dashes and underscores")
+
+    info = inspect_apk(apk, allow_debug=allow_debug)
+    app_id, vcode, vname, label, perms, cert, debug = info["app_id"], info["vcode"], info["vname"], info["label"], info["perms"], info["cert"], info["debug"]
 
     store = json.loads(store_path.read_text())
     old = next((x for x in store["apps"] if x["id"] == app_id), None)
@@ -72,15 +92,16 @@ def index_apk(apk, repo, tag, store_path, author=None, category="tools", descrip
     category = category if category in CATEGORIES else "tools"
 
     icon = None
-    cands = re.findall(r"application-icon-(\d+):'([^']+\.(?:png|webp))'", badging)
-    if cands:
-        path = max(cands, key=lambda x: int(x[0]))[1]
+    if info["icon_path"]:
         icon = f"icons/{app_id}.png"
         if not dry_run:
             out = store_path.parent / "icons"
             out.mkdir(exist_ok=True)
-            with zipfile.ZipFile(apk) as z:
-                (out / f"{app_id}.png").write_bytes(z.read(path))
+            data = read_icon(apk, info["icon_path"])
+            if data is not None:
+                (out / f"{app_id}.png").write_bytes(data)
+            else:
+                icon = None
 
     entry = {
         "id": app_id, "name": label, "author": author or repo.split("/")[0], "repo": repo,
