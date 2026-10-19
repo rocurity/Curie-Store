@@ -11,243 +11,431 @@
 :root{--bg:#f5f7fb;--surface:#fff;--ink:#0f172a;--mute:#667085;--line:#e3e8f0;--blue:#2447f5;--blue-ink:#fff;--chip:#e9eefb;--ok:#0b7a4b;--warn:#b54708;--bad:#d92d20}
 @media(prefers-color-scheme:dark){:root{--bg:#0a0e1a;--surface:#131a2b;--ink:#eef2fb;--mute:#8f9bb8;--line:#232d47;--blue:#6f8bff;--blue-ink:#0a0e1a;--chip:#1b2440;--ok:#4fd39a;--warn:#ffb86b;--bad:#ff7a70}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.4 "DM Sans",system-ui,sans-serif}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.45 "DM Sans",system-ui,sans-serif}
 :focus-visible{outline:3px solid var(--blue);outline-offset:2px}
-.wrap{max-width:860px;margin:auto;padding:0 20px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.wrap{max-width:900px;margin:auto;padding:0 20px}
 header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
-.bar{display:flex;align-items:center;gap:12px;height:64px}
-.brand{font-weight:700;font-size:1.15rem;letter-spacing:-.02em;margin-right:auto}
-.user{display:flex;align-items:center;gap:10px;font-size:.92rem}
-.user img{width:30px;height:30px;border-radius:50%;background:var(--chip)}
-button,.btn{font:500 .95rem "DM Sans",system-ui,sans-serif;font-family:inherit;cursor:pointer;border:0;border-radius:999px;padding:10px 18px;text-decoration:none;display:inline-block;text-align:center}
+.bar-h{display:flex;align-items:center;gap:12px;height:64px}
+.brand{font-weight:700;font-size:1.15rem;letter-spacing:-.02em;margin-right:auto;color:var(--ink);text-decoration:none}
+.user{display:flex;align-items:center;gap:8px;font-size:.92rem}
+.badge{background:var(--chip);border-radius:999px;padding:2px 10px;font-size:.78rem;font-weight:500}
+button,.btn{font-family:inherit;font-size:.95rem;font-weight:500;cursor:pointer;border:0;border-radius:999px;padding:10px 18px;text-decoration:none;display:inline-block;text-align:center;line-height:1.2}
+button:disabled{opacity:.5;cursor:not-allowed}
 .primary{background:var(--blue);color:var(--blue-ink);font-weight:700}
 .ghost{background:var(--chip);color:var(--ink)}
-.title{display:flex;align-items:center;justify-content:space-between;margin:28px 0 18px}
+.danger{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.small{padding:7px 14px;font-size:.88rem}
 h1{font-size:1.7rem;letter-spacing:-.02em;margin:0}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
+h2{font-size:1.1rem;margin:0 0 4px}
+.title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:28px 0 18px;flex-wrap:wrap}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grow{flex:1;min-width:0}
+.sub{color:var(--mute);font-size:.86rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
 .stat b{display:block;font-size:1.6rem;line-height:1.1}.stat span{color:var(--mute);font-size:.85rem}
 .list{display:grid;gap:14px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:18px}
+.card+.card{margin-top:14px}
 .head{display:flex;gap:14px;align-items:center}
 .icon{width:56px;height:56px;border-radius:22%;object-fit:cover;display:grid;place-items:center;color:#fff;font-weight:700;font-size:1.4rem;flex:none}
-.grow{flex:1;min-width:0}
-.name{font-weight:700;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sub{color:var(--mute);font-size:.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.sub a{color:inherit}
+.name{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pill{flex:none;font-size:.8rem;font-weight:500;border-radius:999px;padding:4px 12px}
 .p-live{background:color-mix(in srgb,var(--ok) 15%,transparent);color:var(--ok)}
-.p-review,.p-publishing{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
-.p-failed,.p-declined{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}
+.p-queued,.p-checking,.p-review,.p-publishing{background:color-mix(in srgb,var(--warn) 15%,transparent);color:var(--warn)}
+.p-failed{background:color-mix(in srgb,var(--bad) 15%,transparent);color:var(--bad)}
 .track{display:flex;margin:20px 0 4px}
 .step{flex:1;position:relative;text-align:center;font-size:.75rem;color:var(--mute)}
 .step::before{content:"";position:absolute;top:9px;left:-50%;right:50%;height:2px;background:var(--line)}
 .step:first-child::before{display:none}
 .dot{width:20px;height:20px;border-radius:50%;background:var(--line);margin:0 auto 6px;position:relative;z-index:1;display:grid;place-items:center;color:var(--blue-ink);font-size:.7rem;font-weight:700}
 .step.done .dot{background:var(--blue)}.step.done::before,.step.now::before{background:var(--blue)}
-.step.now .dot{background:var(--surface);border:2px solid var(--blue)}
-.step.now{color:var(--ink);font-weight:500}
-.step.bad .dot{background:var(--bad);border:0}.step.bad{color:var(--bad)}.step.bad::before{background:var(--blue)}
-.reason{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:.9rem;background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad);word-break:break-word}
-.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px}
-.actions .btn,.actions button{padding:8px 16px;font-size:.9rem}
-details{margin-top:14px;border-top:1px solid var(--line);padding-top:10px}
-summary{cursor:pointer;color:var(--mute);font-size:.88rem}
-.kv{display:grid;grid-template-columns:110px 1fr;gap:6px 12px;margin-top:10px;font-size:.88rem}
-.kv span{color:var(--mute)}.kv code{font:12px/1.5 ui-monospace,monospace;word-break:break-all}
-.hist{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;font-size:.88rem}
-.hist li{display:flex;justify-content:space-between;gap:10px}
-.hist a{color:inherit}
-.empty{text-align:center;padding:44px 20px}
-.empty h2{margin:0 0 6px}
-.guide{margin:28px 0 60px;background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:6px 18px 18px}
-.guide summary{padding:12px 0;font-weight:500;color:var(--ink);font-size:1rem}
-.how{list-style:none;margin:0;padding:0;counter-reset:s;display:grid;gap:12px}
-.how li{counter-increment:s;display:flex;gap:14px;align-items:flex-start}
-.how li::before{content:counter(s);flex:none;width:26px;height:26px;border-radius:50%;background:var(--blue);color:var(--blue-ink);display:grid;place-items:center;font-weight:700;font-size:.85rem}
-.how b{display:block;font-weight:500}.how span{color:var(--mute);font-size:.9rem}.how a{color:var(--blue)}
-.note{color:var(--mute);font-size:.88rem;margin:14px 0 0}
-.signin{max-width:380px;margin:12vh auto 0}
-.signin h1{margin-bottom:22px}
-label{display:block;font-weight:500;font-size:.9rem;margin:16px 0 6px}
-input,select{width:100%;font:inherit;color:inherit;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 16px}
-.full{width:100%;margin-top:22px;padding:14px}
+.step.now .dot{background:var(--surface);border:2px solid var(--blue)}.step.now{color:var(--ink);font-weight:500}
+.note{margin-top:14px;padding:12px 14px;border-radius:12px;font-size:.9rem;background:var(--chip);word-break:break-word}
+.note.bad{background:color-mix(in srgb,var(--bad) 12%,transparent);color:var(--bad)}
+.note.warn{background:color-mix(in srgb,var(--warn) 12%,transparent)}
+label.f{display:block;font-weight:500;font-size:.9rem;margin:16px 0 6px}
+input[type=text],input[type=password],select,textarea{width:100%;font:inherit;color:inherit;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+textarea{resize:vertical;min-height:84px}
+.count{float:right;color:var(--mute);font-size:.8rem;font-weight:400}
+.drop{display:block;border:2px dashed var(--line);border-radius:18px;padding:26px 16px;text-align:center;cursor:pointer;background:var(--bg)}
+.drop:hover,.drop.over{border-color:var(--blue)}
+.drop-t{font-weight:700}
+.uprow{display:flex;gap:12px;align-items:center;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:14px}
+.bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;width:0;background:var(--blue);transition:width .2s}
+.tabs{display:flex;gap:6px;overflow-x:auto;margin:18px 0;padding-bottom:4px}
+.tab{padding:8px 16px;border-radius:999px;background:var(--chip);color:var(--ink);text-decoration:none;font-weight:500;font-size:.92rem;white-space:nowrap}
+.tab.on{background:var(--blue);color:var(--blue-ink)}
+.shots{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:12px;margin-top:12px}
+.shot{border:1px solid var(--line);border-radius:14px;padding:8px;text-align:center;background:var(--bg)}
+.shot img{width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:10px;display:block;background:var(--line)}
+.shot .row{justify-content:center;margin-top:6px}
+.ver{padding:14px 0;border-top:1px solid var(--line)}.ver:first-child{border-top:0}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:6px 12px;font-size:.9rem}.kv span{color:var(--mute)}.kv code{font:12px/1.5 ui-monospace,monospace;word-break:break-all}
+.perm{display:inline-block;background:var(--chip);border-radius:999px;padding:2px 10px;font-size:.78rem;margin:2px 4px 2px 0}.perm.hot{background:color-mix(in srgb,var(--bad) 14%,transparent);color:var(--bad)}
+.check{display:flex;gap:10px;padding:6px 0;font-size:.92rem}.check b{flex:none;width:1.2em}
+.signin{max-width:400px;margin:10vh auto 0}
 .err{color:var(--bad);font-size:.88rem;min-height:1.3em;margin-top:8px}
-dialog{width:min(460px,100%);border:0;border-radius:24px;background:var(--surface);color:var(--ink);padding:24px;margin:auto}
+.spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:sp 1s linear infinite;margin:14px 0}
+@keyframes sp{to{transform:rotate(360deg)}}@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+#toasts{position:fixed;left:0;right:0;bottom:16px;display:grid;gap:8px;justify-items:center;pointer-events:none;z-index:50}
+.toast{background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 18px;font-size:.92rem;max-width:90vw}.toast.bad{background:var(--bad);color:#fff}
+dialog{width:min(440px,100%);border:0;border-radius:22px;background:var(--surface);color:var(--ink);padding:24px;margin:auto}
 dialog::backdrop{background:rgba(8,12,24,.6)}
-dialog h2{margin:0 0 4px}
-@media(max-width:600px){.stats{gap:8px}.stat{padding:12px}.kv{grid-template-columns:1fr}dialog{margin:auto 0 0;border-radius:24px 24px 0 0}}
+.publishbar{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--line);padding:14px 0;margin-top:22px;display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+@media(max-width:600px){.stats{gap:8px}.stat{padding:12px}.kv{grid-template-columns:1fr}dialog{margin:auto 0 0;border-radius:22px 22px 0 0}}
 </style>
 </head>
 <body>
 <div id="app"></div>
-<dialog id="dlg"></dialog>
+<div id="toasts" aria-live="polite"></div>
 <script>
-const STORE_REPO='rocurity/Curie-Store',API='https://api.github.com';
-const CATS=['tools','productivity','media','games','social','education','security'];
-const STEPS=['Submitted','In review','Publishing','Live'];
+const CFG={PUBLISH:'https://rocurity--56bf8ed8ca1f11f1a62d1607ee4eb77e.web.val.run',CURIE:'https://rocurity--40be21cebf4011f199401607ee4eb77e.web.val.run',STORE:'https://rocurity--d6f12a7ac46211f19d8c1607ee4eb77e.web.val.run',SIGNUP:'https://curie-id-c579e.web.app'};
+const MB=1048576,LIM={apk:150*MB,icon:1*MB,shot:3*MB},CATS=['tools','productivity','media','games','social','education','security'];
+const SENSITIVE=['CAMERA','RECORD_AUDIO','READ_SMS','SEND_SMS','RECEIVE_SMS','READ_CONTACTS','WRITE_CONTACTS','READ_CALL_LOG','CALL_PHONE','READ_PHONE_STATE','ACCESS_FINE_LOCATION','ACCESS_BACKGROUND_LOCATION','SYSTEM_ALERT_WINDOW','REQUEST_INSTALL_PACKAGES','BIND_ACCESSIBILITY_SERVICE','MANAGE_EXTERNAL_STORAGE','QUERY_ALL_PACKAGES','READ_EXTERNAL_STORAGE'];
+const STATUS={queued:'Checking',checking:'Checking',review:'Waiting for approval',publishing:'Publishing',live:'Live',failed:'Needs attention'};
+const STEPS=['Checking','Approval','Publishing','Live'],POS={queued:0,checking:0,review:1,publishing:2,live:4};
+
+// ---------- helpers ----------
 const $=id=>document.getElementById(id);
 function h(t,at={},...kids){const e=document.createElement(t);
-  for(const[k,v]of Object.entries(at)){if(k==='class')e.className=v;else if(k.startsWith('on'))e[k]=v;else e.setAttribute(k,v)}
-  for(const c of kids.flat())if(c!=null&&c!==false)e.append(c);return e}
-const ls={get:k=>{try{return localStorage.getItem(k)}catch{return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch{}},del:k=>{try{localStorage.removeItem(k)}catch{}}};
-const cap=s=>s[0].toUpperCase()+s.slice(1);
-const mb=b=>b>0?(b/1048576).toFixed(1)+' MB':'-';
+  for(const[k,v]of Object.entries(at)){
+    if(v==null||v===false)continue;
+    if(k==='class')e.className=v;else if(k==='style'&&typeof v==='object')Object.assign(e.style,v);
+    else if(k.startsWith('on'))e[k]=v;else if(v===true)e.setAttribute(k,'');else if(k==='value')e.value=v;else e.setAttribute(k,v)}
+  for(const c of kids.flat(9))if(c!=null&&c!==false)e.append(c);return e}
+const cap=s=>s?s[0].toUpperCase()+s.slice(1):'';
+const size=b=>b>=MB?(b/MB).toFixed(b>=10*MB?0:1)+' MB':Math.max(1,Math.round(b/1024))+' KB';
+const when=t=>{try{return new Date(t).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})}catch{return''}};
 const hue=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))%360,7);
-const AUTH_URL='https://rocurity--0cb947f0c47211f194491607ee4eb77e.web.val.run';
-let user='',token=ls.get('curie-session')||'',booting=true,authErr='',S={store:null,subs:[],loading:false,error:'',at:0};
-
-function tile(name,id,iconPath,size){
-  const x=hue(id),box=h('div',{class:'icon'},name[0].toUpperCase());
-  box.style.background=`linear-gradient(145deg,hsl(${x} 75% 58%),hsl(${(x+40)%360} 70% 42%))`;
-  box.style.width=box.style.height=size+'px';
-  if(/^icons\/[\w.\-]+$/.test(iconPath||'')){
-    const i=h('img',{class:'icon',src:'../store/'+iconPath,alt:''});i.style.width=i.style.height=size+'px';
-    i.onerror=()=>i.replaceWith(box);return i}
+const safeImg=u=>typeof u==='string'&&/^https:\/\//.test(u)?u:'';
+function toast(msg,bad){const t=h('div',{class:'toast'+(bad?' bad':''),role:'status'},msg);$('toasts').append(t);setTimeout(()=>t.remove(),bad?6000:3500)}
+const store={get(k){try{return localStorage.getItem(k)}catch{return null}},set(k,v){try{localStorage.setItem(k,v)}catch{}},del(k){try{localStorage.removeItem(k)}catch{}}};
+const getSession=()=>{try{return JSON.parse(store.get('curie-session')||'null')}catch{return null}};
+const saveSession=v=>v?store.set('curie-session',JSON.stringify(v)):store.del('curie-session');
+const deviceId=()=>{let d=store.get('curieDeviceId');if(!d){d='curie-store-web-'+(crypto.randomUUID?crypto.randomUUID():Date.now()+Math.random().toString(16).slice(2));store.set('curieDeviceId',d)}return d};
+function tile(name,id,url,px){
+  const x=hue(id||name),box=h('div',{class:'icon','aria-hidden':'true'},(name||'?')[0].toUpperCase());
+  box.style.background=`linear-gradient(145deg,hsl(${x} 75% 58%),hsl(${(x+40)%360} 70% 42%))`;box.style.width=box.style.height=px+'px';
+  if(safeImg(url)){const i=h('img',{class:'icon',src:url,alt:''});i.style.width=i.style.height=px+'px';i.onerror=()=>i.replaceWith(box);return i}
   return box}
+function pill(status){return h('span',{class:'pill p-'+status},STATUS[status]||status)}
+function track(status){
+  const c=POS[status];if(c===undefined)return null;
+  return h('div',{class:'track'},STEPS.map((s,i)=>{const cls=i<c?'done':i===c?'now':'';return h('div',{class:'step '+cls},h('div',{class:'dot'},cls==='done'?'✓':''),s)}))}
 
-function status(i,inStore){
-  const labels=i.labels.map(l=>l.name);
-  if(i.state==='closed')return inStore?{k:'live'}:{k:'declined',reason:'This request was closed without being added.'};
-  if(labels.includes('approved'))return{k:'publishing'};
-  const lastC=(i._comments||[]).slice(-1)[0],fail=lastC&&lastC.body.startsWith('Not added')?lastC:null;
-  if(fail){const ls2=fail.body.split('\n').map(x=>x.trim()).filter(x=>x&&!x.startsWith('Not added')&&!x.startsWith('```'));
-    return{k:'failed',reason:ls2[ls2.length-1]||'The check failed.'}}
-  return{k:'review'}}
-const LABEL={live:'Live',review:'In review',publishing:'Publishing',failed:'Needs attention',declined:'Declined'};
-const POS={review:1,publishing:2,live:4,failed:1,declined:1};
+// ---------- dialogs ----------
+function ask({title,text,confirm='OK',danger=false,typeToConfirm='',input=null}){
+  return new Promise(res=>{
+    const d=h('dialog',{});let field=null;
+    const ok=h('button',{class:danger?'danger':'primary'},confirm);
+    if(typeToConfirm){field=h('input',{type:'text',autocomplete:'off','aria-label':'Type to confirm'});ok.disabled=true;field.oninput=()=>{ok.disabled=field.value.trim()!==typeToConfirm}}
+    if(input){field=h('textarea',{placeholder:input,maxlength:'200'})}
+    const done=v=>{d.close();d.remove();res(v)};
+    ok.onclick=()=>done(input?field.value.trim()||true:true);
+    d.append(h('h2',{},title),h('p',{class:'sub'},text),typeToConfirm?h('p',{class:'sub'},'Type ',h('b',{},typeToConfirm),' to confirm.'):'',field||'',
+      h('div',{class:'row',style:{marginTop:'18px'}},ok,h('button',{class:'ghost',onclick:()=>done(false)},'Cancel')));
+    d.addEventListener('cancel',e=>{e.preventDefault();done(false)});
+    document.body.append(d);d.showModal()})}
 
-function model(){
-  const g=new Map(),u=user.toLowerCase();
-  for(const i of S.subs){const repo=i.title.slice(8).trim(),k=repo.toLowerCase();
-    if(!g.has(k))g.set(k,{repo,issues:[]});g.get(k).issues.push(i)}
-  for(const a of S.store.apps)if(a.repo.split('/')[0].toLowerCase()===u&&!g.has(a.repo.toLowerCase()))g.set(a.repo.toLowerCase(),{repo:a.repo,issues:[]});
-  const order={failed:0,declined:0,review:1,publishing:1,live:2};
-  return[...g.entries()].map(([k,v])=>{
-    const live=S.store.apps.find(a=>a.repo.toLowerCase()===k);
-    const hist=v.issues.map(i=>({i,s:status(i,!!live)}));
-    return{key:k,repo:v.repo,live,hist,cur:hist[0]?hist[0].s:{k:'live'}}
-  }).sort((a,b)=>order[a.cur.k]-order[b.cur.k]||a.repo.localeCompare(b.repo))}
+// ---------- state and API ----------
+const S={me:null,apps:[],subs:[],stats:{},admin:false,poll:null,leaving:0};
+async function api(method,path,body){
+  const headers={Authorization:'Bearer '+(S.me&&S.me.token)};if(body!==undefined)headers['Content-Type']='application/json';
+  let r;try{r=await fetch(CFG.PUBLISH+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body)})}catch{throw new Error('Could not reach the store. Check your connection.')}
+  const j=await r.json().catch(()=>({}));
+  if(r.status===401){signOut('Your sign-in expired. Please sign in again.');throw new Error('Your sign-in expired.')}
+  if(!r.ok)throw new Error(j.error||'Something went wrong');
+  return j}
+async function capi(path,opts={}){const r=await fetch(CFG.CURIE+path,{cache:'no-store',...opts,headers:{'Content-Type':'text/plain',...(opts.headers||{})}});return{status:r.status,ok:r.ok,data:await r.json().catch(()=>({}))}}
+function signOut(note){S.me=null;saveSession(null);clearInterval(S.poll);S.apps=[];S.subs=[];render(note)}
 
-async function load(){
-  S.loading=true;S.error='';render();
-  const hd={headers:{Accept:'application/vnd.github+json'}};
-  try{
-    const[store,issues]=await Promise.all([
-      fetch('../store/store.json').then(r=>r.json()),
-      fetch(`${API}/repos/${STORE_REPO}/issues?creator=${encodeURIComponent(user)}&state=all&per_page=50`,hd)
-        .then(r=>{if(r.status===403||r.status===429)throw new Error('rate');if(!r.ok)throw new Error('api');return r.json()})]);
-    S.store=store;
-    S.subs=issues.filter(i=>!i.pull_request&&/^Submit: [\w.-]+\/[\w.-]+$/.test(i.title));
-    await Promise.all(S.subs.filter(i=>i.state==='open'&&i.comments>0).map(async i=>{
-      i._comments=await fetch(`${API}/repos/${STORE_REPO}/issues/${i.number}/comments?per_page=100`,hd).then(r=>r.ok?r.json():[])}));
-    S.at=Date.now();
-  }catch(e){S.error=e.message==='rate'?'GitHub is limiting requests. Try again in a few minutes.':'Could not load your apps. Try again.'}
-  S.loading=false;render()}
+async function loadAll(){
+  const [apps,subs]=await Promise.all([api('GET','/apps?all=1'),api('GET','/submissions?all=1')]);
+  S.admin=!!apps.admin;S.apps=apps.apps;S.subs=subs.submissions;
+  try{const r=await fetch(CFG.STORE+'/stats');S.stats=(await r.json()).apps||{}}catch{S.stats={}}}
+const mine=()=>S.apps.filter(a=>a.owner===S.me.curieId);
+const mySubs=()=>S.subs.filter(s=>!s.owner||s.owner===S.me.curieId);
+const recent=s=>Date.now()-s.updatedAt<14*86400000;
+const active=s=>['queued','checking','review','publishing'].includes(s.status);
 
-function signin(){
-  return h('div',{class:'wrap signin'},h('div',{class:'brand'},'Curie Developers'),h('h1',{},'Sign in'),
-    h('a',{class:'btn primary full',href:AUTH_URL+'/login'},'Continue with GitHub'),
-    authErr?h('div',{class:'err',role:'alert'},authErr):null)}
+// ---------- uploads (straight to the private bucket; progress; retry) ----------
+function checkFile(kind,f){
+  const n=f.name.toLowerCase();
+  if(kind==='apk'){if(!n.endsWith('.apk'))return'That is not an APK file. Choose the .apk you built.';}
+  else if(!/\.(png|jpe?g|webp)$/.test(n)||!/^image\/(png|jpeg|webp)$/.test(f.type))return'Pictures must be PNG, JPG or WebP.';
+  if(f.size>LIM[kind])return`That file is too large (${size(f.size)}). The limit is ${Math.round(LIM[kind]/MB)} MB.`;
+  return''}
+async function prepImage(kind,f){
+  if(typeof createImageBitmap!=='function')return f;
+  try{const bmp=await createImageBitmap(f),max=kind==='icon'?512:1600,scale=Math.min(1,max/Math.max(bmp.width,bmp.height));
+    if(scale===1&&f.size<=LIM[kind])return f;
+    const c=document.createElement('canvas');c.width=Math.round(bmp.width*scale);c.height=Math.round(bmp.height*scale);c.getContext('2d').drawImage(bmp,0,0,c.width,c.height);
+    const type=kind==='icon'?'image/png':'image/jpeg',blob=await new Promise(r=>c.toBlob(r,type,.88));if(!blob)return f;
+    return new File([blob],f.name.replace(/\.[^.]+$/,'')+(kind==='icon'?'.png':'.jpg'),{type})}catch{return f}}
+function putFile(url,file,onProgress,handle){
+  return new Promise((res,rej)=>{const x=new XMLHttpRequest();x.open('PUT',url);
+    x.upload.onprogress=e=>{if(e.lengthComputable)onProgress(e.loaded/e.total)};
+    x.onload=()=>x.status>=200&&x.status<300?res():rej(new Error(x.status===403?'The upload link expired. Try again.':'Upload failed ('+x.status+'). Try again.'));
+    x.onerror=()=>rej(new Error('Network error. Check your connection and try again.'));x.onabort=()=>rej(new Error('Cancelled'));
+    if(handle)handle.cancel=()=>x.abort();x.send(file)})}
+async function uploadFile(kind,file,onProgress,handle){
+  const s=await api('POST','/uploads',{kind,filename:file.name,size:file.size,contentType:file.type||'application/vnd.android.package-archive'});
+  await putFile(s.uploadUrl,file,onProgress,handle);
+  await api('POST',`/uploads/${s.id}/complete`);return s.id}
+/** A row that shows one file going up. run() resolves with the upload id, or rejects. */
+function uploader(kind,file){
+  const fill=h('i'),bar=h('div',{class:'bar'},fill),st=h('span',{class:'sub'},'Waiting');
+  const retry=h('button',{class:'ghost small',style:{display:'none'}},'Try again'),cancel=h('button',{class:'ghost small'},'Cancel');
+  const row=h('div',{class:'uprow'},h('div',{class:'grow'},h('div',{class:'name'},file.name),h('div',{class:'sub'},size(file.size)),bar),st,retry,cancel);
+  const u={row,id:null,state:'idle',handle:{},
+    async run(){
+      u.state='uploading';retry.style.display='none';cancel.style.display='';st.textContent='Uploading 0%';fill.style.width='0%';S.leaving++;
+      try{u.id=await uploadFile(kind,file,p=>{fill.style.width=Math.round(p*100)+'%';st.textContent='Uploading '+Math.round(p*100)+'%'},u.handle);
+        u.state='done';fill.style.width='100%';st.textContent='✓ Uploaded';cancel.style.display='none';return u.id}
+      catch(e){u.state='failed';st.textContent=e.message;st.style.color='var(--bad)';retry.style.display='';cancel.style.display='none';throw e}
+      finally{S.leaving--}}};
+  retry.onclick=()=>{st.style.color='';u.run().catch(()=>{})};cancel.onclick=()=>{if(u.handle.cancel)u.handle.cancel()};
+  return u}
+window.addEventListener('beforeunload',e=>{if(S.leaving>0){e.preventDefault();e.returnValue=''}});
+function dropZone({label,hint,accept,multiple,onFiles}){
+  const inp=h('input',{type:'file',accept,multiple:!!multiple,class:'sr',tabindex:'-1'});
+  const z=h('label',{class:'drop',tabindex:'0'},h('div',{class:'drop-t'},label),h('div',{class:'sub'},hint),inp);
+  inp.onchange=()=>{const f=[...inp.files];inp.value='';if(f.length)onFiles(f)};
+  z.ondragover=e=>{e.preventDefault();z.classList.add('over')};z.ondragleave=()=>z.classList.remove('over');
+  z.ondrop=e=>{e.preventDefault();z.classList.remove('over');const f=[...((e.dataTransfer&&e.dataTransfer.files)||[])];if(f.length)onFiles(multiple?f:f.slice(0,1))};
+  z.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();inp.click()}};return z}
+const catSelect=v=>{const s=h('select',{'aria-label':'Category'},CATS.map(c=>h('option',{value:c},cap(c))));s.value=CATS.includes(v)?v:'tools';return s};
+function counted(el,max){const c=h('span',{class:'count'},'');const upd=()=>{c.textContent=el.value.length+'/'+max};el.addEventListener('input',upd);upd();return c}
 
-async function boot(){
-  const m=location.hash.match(/session=([\w.\-]+)/);
-  if(m){token=m[1];ls.set('curie-session',token);history.replaceState(null,'',location.pathname)}
-  if(token){
-    try{
-      const r=await fetch(AUTH_URL+'/me',{headers:{Authorization:'Bearer '+token}});
-      if(r.status===401){token='';ls.del('curie-session')}
-      else if(r.ok)user=(await r.json()).login;
-      else authErr='Sign-in is unavailable. Try again later.';
-    }catch{authErr='Sign-in is unavailable. Try again later.'}
-  }
-  booting=false;render();if(user)load()}
+// ---------- Curie ID sign-in ----------
+function signInView(note){
+  const wrap=h('div',{class:'wrap signin'});
+  const draw=(...kids)=>{wrap.replaceChildren(h('div',{class:'brand'},'Curie Developers'),...kids)};
+  const form=()=>{
+    const id=h('input',{type:'text',placeholder:'Curie ID or username',autocomplete:'username',autocapitalize:'none','aria-label':'Curie ID or username'});
+    const pw=h('input',{type:'password',placeholder:'Password',autocomplete:'current-password','aria-label':'Password'});
+    const err=h('div',{class:'err',role:'alert'},note||''),go=h('button',{class:'primary',style:{width:'100%',marginTop:'14px'}},'Sign in');
+    const run=async()=>{
+      const ident=id.value.trim().toLowerCase();if(!ident||!pw.value){err.textContent='Enter your Curie ID or username, and password';return}
+      go.disabled=true;go.textContent='Signing in';err.textContent='';
+      try{const r=await capi('/login',{method:'POST',body:JSON.stringify({identifier:ident,password:pw.value,deviceId:deviceId()})});pw.value='';
+        if(r.status===202)return wait(r.data);if(!r.ok)throw new Error(r.data.error||'Sign-in failed');await finish(r.data)}
+      catch(e){err.textContent=e.message;go.disabled=false;go.textContent='Sign in'}};
+    go.onclick=run;pw.onkeydown=e=>{if(e.key==='Enter')run()};
+    draw(h('h1',{style:{margin:'18px 0'}},'Sign in with Curie ID'),id,h('div',{style:{height:'10px'}}),pw,err,go,
+      h('p',{class:'sub',style:{textAlign:'center',marginTop:'16px'}},h('a',{href:CFG.SIGNUP,rel:'noopener'},'Create a Curie ID')))};
+  let alive=true,done=false;
+  const finish=async d=>{if(done)return;done=true;alive=false;
+    let me={token:d.accessToken,curieId:d.curieId};
+    try{const r=await capi('/me',{headers:{Authorization:'Bearer '+d.accessToken}});if(r.ok){me.displayName=r.data.displayName;me.username=r.data.username}}catch{}
+    S.me=me;saveSession(me);render()};
+  const wait=info=>{
+    const err=h('div',{class:'err',role:'alert'});
+    draw(h('h1',{style:{margin:'18px 0'}},'Approve sign-in'),h('div',{class:'spin'}),h('p',{class:'sub'},'Approve this sign-in on a device where you are already signed in to Curie ID.'),err,
+      info.emailFallback?h('button',{class:'ghost',style:{width:'100%',marginTop:'12px'},onclick:()=>email(info)},'Email me a code instead'):'');
+    if(info.autoEmail){email(info);return}
+    const t0=Date.now();
+    const poll=async()=>{if(!alive||!wrap.isConnected)return;
+      try{const r=await capi('/login/status/'+info.approvalId);if(r.data.status==='approved')return finish(r.data);if(r.data.status==='denied'){err.textContent='The sign-in was denied or expired.';return}}catch{}
+      if(Date.now()-t0>300000){err.textContent='The request expired. Reload and try again.';return}setTimeout(poll,2500)};poll()};
+  const email=async info=>{
+    const code=h('input',{type:'text',placeholder:'6-digit code',inputmode:'numeric',autocomplete:'one-time-code',maxlength:'6','aria-label':'Code'});
+    const err=h('div',{class:'err',role:'alert'}),msg=h('p',{class:'sub'},'Sending code'),btn=h('button',{class:'primary',style:{width:'100%'}},'Verify');
+    draw(h('h1',{style:{margin:'18px 0'}},'Enter code'),msg,code,err,btn);
+    const s=await capi('/login/email-code/send',{method:'POST',body:JSON.stringify({approvalId:info.approvalId})}).catch(()=>null);
+    msg.textContent=s&&s.ok?'We sent a code to '+(s.data.maskedEmail||'your email'):(s&&s.data.error)||'Could not send the code';
+    const go=async()=>{btn.disabled=true;err.textContent='';const r=await capi('/login/email-code/verify',{method:'POST',body:JSON.stringify({approvalId:info.approvalId,code:code.value.trim()})}).catch(()=>null);
+      if(r&&r.ok)return finish(r.data);err.textContent=(r&&r.data.error)||'Could not verify the code';btn.disabled=false};
+    btn.onclick=go;code.onkeydown=e=>{if(e.key==='Enter')go()}};
+  form();return wrap}
 
-function track(cur){
-  const c=POS[cur.k],bad=cur.k==='failed'||cur.k==='declined';
-  return h('div',{class:'track'},STEPS.map((s,i)=>{
-    const cls=i<c?'done':i===c?(bad?'bad':'now'):'';
-    return h('div',{class:'step '+cls},h('div',{class:'dot'},cls==='done'?'✓':cls==='bad'?'!':''),s)}))}
+// ---------- layout ----------
+function shell(content){
+  const nav=h('header',{},h('div',{class:'wrap bar-h'},h('a',{class:'brand',href:'#/'},'Curie Developers'),
+    h('div',{class:'user'},S.admin?h('span',{class:'badge'},'Owner'):'',h('span',{},S.me.displayName||S.me.username||S.me.curieId),
+      h('a',{class:'btn ghost small',href:'../store/'},'Store'),h('button',{class:'ghost small',onclick:()=>signOut()},'Sign out'))));
+  return h('div',{},nav,h('main',{class:'wrap',id:'main'},content))}
+const backLink=(to,t)=>h('a',{href:to,class:'sub'},'‹ '+t);
 
-function card(m){
-  const l=m.live,name=l?l.name:m.repo.split('/')[1],k=m.cur.k;
-  const head=h('div',{class:'head'},tile(name,l?l.id:m.repo,l&&l.icon,56),
-    h('div',{class:'grow'},h('div',{class:'name'},name),
-      h('div',{class:'sub'},h('a',{href:'https://github.com/'+m.repo,rel:'noopener'},m.repo),l?` · v${l.latest.version} · ${cap(l.category)}`:'')),
-    h('span',{class:'pill p-'+k},LABEL[k]));
-  const acts=h('div',{class:'actions'});
-  if(l)acts.append(h('a',{class:'btn ghost',href:'../store/'},'View in store'));
-  if(k==='live')acts.append(h('button',{class:'primary',onclick:()=>openSubmit(m.repo,l&&l.category)},'Submit update'));
-  if(k==='failed'||k==='declined')acts.append(h('button',{class:'primary',onclick:()=>openSubmit(m.repo,l&&l.category)},'Resubmit'));
-  if(m.hist[0]&&k!=='live')acts.append(h('a',{class:'btn ghost',href:m.hist[0].i.html_url,rel:'noopener'},'View request'));
-  const fmt=d=>new Date(d).toLocaleDateString(undefined,{month:'short',day:'numeric'});
-  return h('article',{class:'card'},head,
-    k==='live'?h('p',{class:'note'},'New releases go live automatically within a few hours.'):track(m.cur),
-    m.cur.reason?h('div',{class:'reason'},m.cur.reason):null,
-    acts.children.length?acts:null,
-    l?h('details',{},h('summary',{},'App details'),h('div',{class:'kv'},
-      h('span',{},'Version'),h('div',{},l.latest.version),h('span',{},'Size'),h('div',{},mb(l.latest.sizeBytes)),
-      h('span',{},'Permissions'),h('div',{},String(l.latest.permissions.length)),
-      h('span',{},'Signed by'),h('code',{},l.latest.certSha256))):null,
-    m.hist.length?h('details',{},h('summary',{},'History'),h('ul',{class:'hist'},m.hist.map(x=>
-      h('li',{},h('a',{href:x.i.html_url,rel:'noopener'},'Request #'+x.i.number+' · '+fmt(x.i.created_at)),h('span',{class:'pill p-'+x.s.k},LABEL[x.s.k]))))):null)}
+// ---------- My apps ----------
+function appCard(a){
+  const subs=mySubs().filter(s=>s.kind==='version'&&s.targetApp===a.id&&(active(s)||(s.status==='failed'&&recent(s)))).slice(0,1);
+  const st=S.stats[a.id],pending=subs.find(active);
+  const info=[cap(a.category),'v'+a.latest.version,size(a.latest.sizeBytes)];if(st&&st.ratings)info.push('★ '+st.rating.toFixed(1));if(st&&st.installs)info.push(st.installs+' installs');
+  return h('article',{class:'card'},h('div',{class:'head'},tile(a.name,a.id,a.iconUrl,56),
+      h('div',{class:'grow'},h('div',{class:'name'},a.name),h('div',{class:'sub'},info.join(' · '))),pending?pill(pending.status):pill('live')),
+    ...subs.map(s=>h('div',{class:'note'+(s.status==='failed'?' bad':'')},s.status==='failed'?`New release failed: ${s.message}`:`New release ${s.notes?'“'+s.notes.slice(0,40)+'”':''} is ${STATUS[s.status].toLowerCase()}…`)),
+    a.debug?h('div',{class:'note warn'},'This is a debug build. It is listed with a Debug label.'):'',
+    h('div',{class:'row',style:{marginTop:'14px'}},h('a',{class:'btn primary small',href:'#/app/'+a.id},'Manage'),h('a',{class:'btn ghost small',href:'../store/'},'View in store')))}
+function subCard(s){
+  const name=s.name||s.appId||'New app';
+  return h('article',{class:'card'},h('div',{class:'head'},tile(name,s.id,'',56),h('div',{class:'grow'},h('div',{class:'name'},name),h('div',{class:'sub'},cap(s.category)+' · '+when(s.createdAt))),pill(s.status)),
+    track(s.status),s.status==='review'?h('div',{class:'note'},'The store owner looks at a developer’s first app before it goes live. You will see it here as soon as it is approved.'):'',
+    s.status==='failed'?h('div',{class:'note bad'},s.message||'The check failed.'):'',
+    s.status==='failed'?h('div',{class:'row',style:{marginTop:'12px'}},h('a',{class:'btn ghost small',href:'#/new'},'Upload again')):'')}
+async function viewApps(root){
+  const draw=()=>{
+    const apps=mine(),standalone=mySubs().filter(s=>s.kind==='new'&&s.status!=='live'&&(active(s)||(s.status==='failed'&&recent(s)))).slice(0,8);
+    const nLive=apps.length,nProg=mySubs().filter(active).length,nBad=standalone.filter(s=>s.status==='failed').length;
+    const review=S.admin?S.subs.filter(s=>s.status==='review').length:0;
+    root.replaceChildren(
+      h('div',{class:'title'},h('h1',{},'Your apps'),h('div',{class:'row'},S.admin?h('a',{class:'btn ghost',href:'#/review'},'Owner tools'+(review?` (${review})`:'')):'',h('a',{class:'btn primary',href:'#/new'},'New app'))),
+      h('section',{class:'stats'},h('div',{class:'stat'},h('b',{},String(nLive)),h('span',{},'Live')),h('div',{class:'stat'},h('b',{},String(nProg)),h('span',{},'In progress')),h('div',{class:'stat'},h('b',{},String(nBad)),h('span',{},'Needs attention'))),
+      !apps.length&&!standalone.length?h('div',{class:'card',style:{textAlign:'center',padding:'44px 20px'}},h('h2',{},'No apps yet'),h('p',{class:'sub'},'Upload your first app. It takes a few minutes.'),h('a',{class:'btn primary',href:'#/new'},'Upload an app')):
+      h('section',{class:'list'},standalone.map(subCard),apps.map(appCard)))};
+  draw();
+  S.poll=setInterval(async()=>{if(!document.body.contains(root))return clearInterval(S.poll);
+    if(!mySubs().some(active)&&!S.subs.some(s=>s.status==='review'))return;
+    try{const was=JSON.stringify(S.subs.map(s=>[s.id,s.status]));await loadAll();if(JSON.stringify(S.subs.map(s=>[s.id,s.status]))!==was)draw()}catch{}},4000)}
 
-function guide(open){
-  const li=(b,s)=>h('li',{},h('div',{},h('b',{},b),h('span',{},...s)));
-  const a=(u,t)=>h('a',{href:u,rel:'noopener'},t);
-  const d=h('details',{class:'guide'},h('summary',{},'How to publish an app'),h('ol',{class:'how'},
-    li('Create a GitHub account',['Free, at ',a('https://github.com/signup','github.com/signup')]),
-    li('Create a repository',['Click ',a('https://github.com/new','New'),' and name it after your app']),
-    li('Build a signed release APK',['Android Studio: Build, Generate Signed App Bundle / APK, APK. Debug builds are rejected']),
-    li('Publish a release',['On your repo: Releases, Draft a new release, attach the APK, Publish. One APK per release']),
-    li('Submit your repo',['Press New app here. New developers are reviewed once; after that, apps and updates go live automatically']),
-    li('Release updates',['Publish a new release with a higher version code. Or ',a('release-template.yml','use this template'),' to build, sign and release on every tag'])),
-    h('p',{class:'note'},'Keep your signing key safe. Every update must be signed with the same key.'));
-  if(open)d.open=true;return d}
+// ---------- New app ----------
+async function viewNew(root){
+  const W={apk:null,icon:null,shots:[]};
+  const name=h('input',{type:'text',maxlength:'60',placeholder:'Leave empty to use the name inside your app','aria-label':'App name'});
+  const cat=catSelect('tools'),desc=h('textarea',{maxlength:'160',placeholder:'One or two sentences about what your app does','aria-label':'Description'}),notes=h('textarea',{maxlength:'500',placeholder:'What is in this first release?','aria-label':'Release notes'});
+  const apkBox=h('div',{}),iconBox=h('div',{}),shotBox=h('div',{});
+  const go=h('button',{class:'primary',disabled:true},'Publish'),hint=h('span',{class:'sub'},'Upload your app file first.');
+  const refresh=()=>{const busy=[W.apk,W.icon,...W.shots].some(u=>u&&u.state==='uploading');
+    go.disabled=!(W.apk&&W.apk.state==='done')||busy;hint.textContent=!W.apk?'Upload your app file first.':W.apk.state==='failed'?'The app file did not upload. Try again.':busy?'Waiting for uploads to finish…':W.apk.state==='done'?'Ready to publish.':''};
+  async function addFile(kind,file,box,slot){
+    let f=file;const bad=checkFile(kind,file);if(bad){toast(bad,true);return}
+    if(kind!=='apk')f=await prepImage(kind,file);
+    const bad2=checkFile(kind,f);if(bad2){toast(bad2,true);return}
+    const u=uploader(kind,f);slot(u);box.append(u.row);refresh();u.run().then(refresh,refresh);
+    const cancel=u.row.querySelector('button.ghost:last-child');if(cancel)cancel.addEventListener('click',()=>setTimeout(refresh,0));return u}
+  apkBox.append(dropZone({label:'Drop your .apk here, or click to choose',hint:'Up to 150 MB. It must be signed.',accept:'.apk',onFiles:async([f])=>{
+    if(W.apk&&W.apk.state==='uploading')return toast('Wait for the current upload to finish.',true);
+    apkBox.querySelectorAll('.uprow').forEach(x=>x.remove());await addFile('apk',f,apkBox,u=>W.apk=u)}}));
+  iconBox.append(dropZone({label:'App icon (optional)',hint:'PNG, JPG or WebP. We use the icon inside your app if you skip this.',accept:'image/png,image/jpeg,image/webp',onFiles:async([f])=>{
+    iconBox.querySelectorAll('.uprow').forEach(x=>x.remove());await addFile('icon',f,iconBox,u=>W.icon=u)}}));
+  shotBox.append(dropZone({label:'Screenshots (optional, up to 5)',hint:'PNG, JPG or WebP. Large pictures are shrunk for you.',accept:'image/png,image/jpeg,image/webp',multiple:true,onFiles:async files=>{
+    for(const f of files){if(W.shots.length>=5){toast('At most 5 screenshots.',true);break}await addFile('shot',f,shotBox,u=>W.shots.push(u))}}}));
+  go.onclick=async()=>{
+    go.disabled=true;go.textContent='Publishing…';
+    try{await api('POST','/submissions',{apkUpload:W.apk.id,iconUpload:W.icon&&W.icon.state==='done'?W.icon.id:undefined,shotUploads:W.shots.filter(u=>u.state==='done').map(u=>u.id),
+        name:name.value.trim(),category:cat.value,description:desc.value.trim(),notes:notes.value.trim()});
+      toast('Submitted. We are checking your app now.');await loadAll();location.hash='#/'}
+    catch(e){toast(e.message,true);go.textContent='Publish';refresh()}};
+  root.replaceChildren(backLink('#/','Your apps'),h('div',{class:'title'},h('h1',{},'New app')),
+    h('section',{class:'card'},h('h2',{},'1. Your app file'),apkBox),
+    h('section',{class:'card'},h('h2',{},'2. Details'),h('label',{class:'f'},'Name'),name,h('label',{class:'f'},'Category'),cat,
+      h('label',{class:'f'},'Description',counted(desc,160)),desc,h('label',{class:'f'},'Release notes',counted(notes,500)),notes),
+    h('section',{class:'card'},h('h2',{},'3. Pictures'),iconBox,shotBox),
+    h('div',{class:'publishbar'},go,hint),
+    h('p',{class:'sub'},'A developer’s first app is checked by the store owner before it goes live. After that, your apps and updates are published automatically.'));
+  refresh()}
 
-function dashboard(){
-  const root=h('div',{});
-  root.append(h('header',{},h('div',{class:'wrap bar'},h('div',{class:'brand'},'Curie Developers'),
-    h('div',{class:'user'},h('img',{src:`https://github.com/${encodeURIComponent(user)}.png?size=64`,alt:''}),user),
-    h('button',{class:'ghost',onclick:()=>{ls.del('curie-session');token='';user='';render()}},'Sign out'))));
-  const main=h('main',{class:'wrap'});root.append(main);
-  main.append(h('div',{class:'title'},h('h1',{},'Your apps'),
-    h('div',{},h('button',{class:'ghost',onclick:load,style:'margin-right:8px'},S.loading?'Loading':'Refresh'),
-      h('button',{class:'primary',onclick:()=>openSubmit()},'New app'))));
-  if(S.error)main.append(h('div',{class:'reason'},S.error));
-  if(!S.store){if(!S.error)main.append(h('p',{class:'sub'},'Loading'));return root}
-  const ms=model(),n=f=>ms.filter(m=>f.includes(m.cur.k)).length;
-  main.append(h('section',{class:'stats'},
-    h('div',{class:'stat'},h('b',{},String(n(['live']))),h('span',{},'Live')),
-    h('div',{class:'stat'},h('b',{},String(n(['review','publishing']))),h('span',{},'In progress')),
-    h('div',{class:'stat'},h('b',{},String(n(['failed','declined']))),h('span',{},'Needs attention'))));
-  if(!ms.length)main.append(h('div',{class:'card empty'},h('h2',{},'No apps yet'),h('p',{class:'sub'},'Publish your first app in a few steps')));
-  else main.append(h('section',{class:'list'},ms.map(card)));
-  main.append(guide(!ms.length));
-  return root}
+// ---------- App page ----------
+const TABS=[['details','Details'],['releases','Releases'],['media','Pictures'],['stats','Reviews & stats'],['danger','Delete']];
+async function viewApp(root,id,tab='details'){
+  const app=S.apps.find(a=>a.id===id);
+  if(!app){root.replaceChildren(backLink('#/','Your apps'),h('div',{class:'card',style:{marginTop:'18px'}},'That app was not found.'));return}
+  const body=h('div',{}),refreshApps=async()=>{await loadAll();return viewApp(root,id,tab)};
+  const nav=h('nav',{class:'tabs'},TABS.map(([k,t])=>h('a',{class:'tab'+(k===tab?' on':''),href:`#/app/${id}/${k}`},t)));
+  root.replaceChildren(backLink('#/','Your apps'),h('div',{class:'title'},h('div',{class:'head'},tile(app.name,app.id,app.iconUrl,56),h('div',{},h('h1',{},app.name),h('div',{class:'sub'},app.id))),
+    h('a',{class:'btn ghost',href:'../store/'},'View in store')),nav,body);
+  if(app.legacy&&S.admin)body.append(h('div',{class:'note warn'},'This app has no developer account yet (it was added before the dashboard). Only the store owner can change it.'));
 
-function openSubmit(repo='',cat='tools'){
-  const d=$('dlg');
-  const r=h('input',{id:'repo',placeholder:'owner/app',autocomplete:'off',autocapitalize:'none',value:repo});
-  const c=h('select',{},CATS.map(x=>h('option',{value:x},cap(x))));c.value=CATS.includes(cat)?cat:'tools';
-  const ds=h('input',{maxlength:'160',placeholder:'Optional'});
-  const err=h('div',{class:'err',role:'alert'});
-  const go=()=>{
-    const v=r.value.trim().replace(/^https:\/\/github\.com\//,'').replace(/\/$/,'');
-    if(!/^[\w.-]+\/[\w.-]+$/.test(v)){err.textContent='Enter the repo as owner/app';return}
-    const body=`repo: ${v}\ncategory: ${c.value}\ndescription: ${ds.value.replace(/\s+/g,' ').trim()}\n`;
-    window.open(`https://github.com/${STORE_REPO}/issues/new?title=${encodeURIComponent('Submit: '+v)}&body=${encodeURIComponent(body)}`,'_blank','noopener');
-    d.close()};
-  d.replaceChildren(h('h2',{},repo?'Submit update':'New app'),
-    h('label',{},'GitHub repo'),r,h('label',{},'Category'),c,h('label',{},'Description'),ds,err,
-    h('p',{class:'note'},'Opens GitHub. Press Create there, then come back and refresh.'),
-    h('div',{class:'actions'},h('button',{class:'primary',onclick:go},'Continue'),h('button',{class:'ghost',onclick:()=>d.close()},'Cancel')));
-  d.showModal()}
-$('dlg').addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.close()});
+  if(tab==='details'){
+    const name=h('input',{type:'text',value:app.name,maxlength:'60','aria-label':'Name'}),cat=catSelect(app.category),desc=h('textarea',{maxlength:'160','aria-label':'Description'});desc.value=app.description||'';
+    const save=h('button',{class:'primary',disabled:true},'Save changes');
+    const dirty=()=>{save.disabled=name.value===app.name&&cat.value===app.category&&desc.value===(app.description||'')};[name,cat,desc].forEach(e=>{e.addEventListener('input',dirty);e.addEventListener('change',dirty)});
+    save.onclick=async()=>{save.disabled=true;save.textContent='Saving…';
+      try{await api('PATCH','/apps/'+id,{name:name.value,category:cat.value,description:desc.value});toast('Saved.');await refreshApps()}catch(e){toast(e.message,true);save.textContent='Save changes';dirty()}};
+    body.append(h('section',{class:'card'},h('label',{class:'f',style:{marginTop:0}},'Name'),name,h('label',{class:'f'},'Category'),cat,h('label',{class:'f'},'Description',counted(desc,160)),desc,h('div',{class:'row',style:{marginTop:'16px'}},save)))}
 
-function render(){const a=$('app');a.replaceChildren(booting?h('p',{class:'sub',style:'padding:24px 20px'},'Loading'):user?dashboard():signin())}
-document.addEventListener('visibilitychange',()=>{if(!document.hidden&&user&&!S.loading&&Date.now()-S.at>30000)load()});
-render();boot();
+  if(tab==='releases'){
+    const vs=app.versions,pending=mySubs().find(s=>s.kind==='version'&&s.targetApp===id&&active(s));
+    const box=h('div',{}),notes=h('textarea',{maxlength:'500',placeholder:'What changed in this release?','aria-label':'Release notes'});
+    let up=null;const go=h('button',{class:'primary',disabled:true},'Publish release');
+    const sync=()=>{go.disabled=!(up&&up.state==='done')||!!pending};
+    const zone=dropZone({label:'Drop the new .apk here',hint:'Same signing key as before, and a higher version code.',accept:'.apk',onFiles:async([f])=>{
+      const bad=checkFile('apk',f);if(bad)return toast(bad,true);box.querySelectorAll('.uprow').forEach(x=>x.remove());up=uploader('apk',f);box.append(up.row);sync();up.run().then(sync,sync)}});
+    go.onclick=async()=>{go.disabled=true;go.textContent='Publishing…';
+      try{await api('POST','/submissions',{targetApp:id,apkUpload:up.id,category:app.category,notes:notes.value.trim()});toast('Submitted. We are checking the new release.');await refreshApps()}catch(e){toast(e.message,true);go.textContent='Publish release';sync()}};
+    body.append(h('section',{class:'card'},h('h2',{},'New release'),pending?h('div',{class:'note'},`A release is already ${STATUS[pending.status].toLowerCase()}. You can upload another when it finishes.`):'',zone,box,h('label',{class:'f'},'Release notes',counted(notes,500)),notes,h('div',{class:'row',style:{marginTop:'14px'}},go)));
+    body.append(h('section',{class:'card'},h('h2',{},'All releases'),...vs.map((v,i)=>h('div',{class:'ver'},
+      h('div',{class:'row'},h('b',{},'Version '+v.version),h('span',{class:'sub'},'code '+v.versionCode),i===0?h('span',{class:'pill p-live'},'Latest'):'',v.debug?h('span',{class:'pill p-queued'},'Debug'):'',h('span',{class:'grow'}),
+        vs.length>1?h('button',{class:'danger small',onclick:async()=>{if(await ask({title:'Delete version '+v.version+'?',text:'People will no longer be able to install this version.'+(i===0?' The previous version becomes the latest.':''),confirm:'Delete version',danger:true}))
+          try{await api('DELETE',`/apps/${id}/versions/${v.versionCode}`);toast('Version deleted.');await refreshApps()}catch(e){toast(e.message,true)}}},'Delete'):''),
+      h('div',{class:'sub'},[when(v.date),size(v.sizeBytes),(v.permissions||[]).length+' permissions'].filter(Boolean).join(' · ')),v.notes?h('p',{style:{margin:'6px 0 0'}},v.notes):''))))}
+
+  if(tab==='media'){
+    const addMedia=async(kind,file,statusBox)=>{
+      const bad=checkFile(kind,file);if(bad)return toast(bad,true);const f=await prepImage(kind,file),u=uploader(kind,f);statusBox.append(u.row);
+      try{const upId=await u.run();await api('POST',`/apps/${id}/media`,{kind,upload:upId});toast(kind==='icon'?'Icon updated.':'Screenshot added.');await refreshApps()}catch(e){toast(e.message,true)}};
+    const iconStatus=h('div',{}),shotStatus=h('div',{});
+    body.append(h('section',{class:'card'},h('h2',{},'Icon'),h('div',{class:'head',style:{margin:'10px 0'}},tile(app.name,app.id,app.iconUrl,72),h('div',{class:'sub'},'Shown in the store. Square pictures look best.')),
+      dropZone({label:'Replace the icon',hint:'PNG, JPG or WebP',accept:'image/png,image/jpeg,image/webp',onFiles:([f])=>addMedia('icon',f,iconStatus)}),iconStatus));
+    const shots=app.screenshots,move=async(i,d)=>{const urls=[...shots];[urls[i],urls[i+d]]=[urls[i+d],urls[i]];try{await api('PUT',`/apps/${id}/screenshots`,{urls});await refreshApps()}catch(e){toast(e.message,true)}};
+    body.append(h('section',{class:'card'},h('h2',{},`Screenshots (${shots.length}/5)`),
+      shots.length?h('div',{class:'shots'},shots.map((u,i)=>h('div',{class:'shot'},h('img',{src:safeImg(u),alt:'Screenshot '+(i+1),loading:'lazy'}),h('div',{class:'row'},
+        h('button',{class:'ghost small','aria-label':'Move left',disabled:i===0,onclick:()=>move(i,-1)},'◀'),h('button',{class:'ghost small','aria-label':'Move right',disabled:i===shots.length-1,onclick:()=>move(i,1)},'▶'),
+        h('button',{class:'danger small','aria-label':'Remove screenshot',onclick:async()=>{if(await ask({title:'Remove this screenshot?',text:'It disappears from your app page in the store.',confirm:'Remove',danger:true}))
+          try{await api('PUT',`/apps/${id}/screenshots`,{urls:shots.filter((_,j)=>j!==i)});toast('Removed.');await refreshApps()}catch(e){toast(e.message,true)}}},'✕'))))):h('p',{class:'sub'},'No screenshots yet.'),
+      shots.length<5?h('div',{style:{marginTop:'12px'}},dropZone({label:'Add screenshots',hint:'Up to 5 in total. Large pictures are shrunk for you.',accept:'image/png,image/jpeg,image/webp',multiple:true,onFiles:async files=>{for(const f of files.slice(0,5-shots.length))await addMedia('shot',f,shotStatus)}}),shotStatus):''))}
+
+  if(tab==='stats'){
+    const box=h('section',{class:'card'},h('div',{class:'spin'}));body.append(box);
+    try{const [s,rv]=await Promise.all([fetch(`${CFG.STORE}/apps/${encodeURIComponent(id)}`).then(r=>r.json()),fetch(`${CFG.STORE}/apps/${encodeURIComponent(id)}/reviews?limit=20`).then(r=>r.json())]);
+      box.replaceChildren(h('div',{class:'stats',style:{marginBottom:0}},h('div',{class:'stat'},h('b',{},s.ratings?'★ '+s.rating.toFixed(1):'-'),h('span',{},s.ratings?s.ratings+' rating'+(s.ratings>1?'s':''):'No ratings yet')),
+        h('div',{class:'stat'},h('b',{},String(s.installs||0)),h('span',{},'Installs')),h('div',{class:'stat'},h('b',{},String(app.versions.length)),h('span',{},'Releases'))),
+        h('h2',{style:{marginTop:'20px'}},'Reviews'),(rv.reviews||[]).length?(rv.reviews).map(x=>h('div',{class:'ver'},h('b',{},x.name),h('span',{class:'sub'},'  '+'★'.repeat(x.stars)),x.review?h('p',{style:{margin:'4px 0 0'}},x.review):'')):h('p',{class:'sub'},'No reviews yet.'))}
+    catch{box.replaceChildren(h('p',{class:'sub'},'Could not load the numbers right now.'))}}
+
+  if(tab==='danger'){
+    body.append(h('section',{class:'card'},h('h2',{},'Delete this app'),h('p',{class:'sub'},'The app disappears from the store and all its files are deleted. People who already installed it keep it. This cannot be undone.'),
+      h('button',{class:'danger',onclick:async()=>{if(await ask({title:'Delete '+app.name+'?',text:'All versions, the icon and the screenshots will be deleted.',confirm:'Delete the app',danger:true,typeToConfirm:app.name}))
+        try{await api('DELETE','/apps/'+id);toast('App deleted.');await loadAll();location.hash='#/'}catch(e){toast(e.message,true)}}},'Delete this app')))}}
+
+// ---------- Owner tools ----------
+async function viewReview(root){
+  if(!S.admin){root.replaceChildren(h('div',{class:'card',style:{marginTop:'24px'}},'This page is for the store owner.'));return}
+  const draw=()=>{
+    const queue=S.subs.filter(s=>s.status==='review'),recentSubs=S.subs.filter(s=>s.status!=='review').slice(0,15);
+    const q=h('section',{},queue.length?queue.map(s=>{const r=s.review||{},perms=r.permissions||[];
+      return h('article',{class:'card'},h('div',{class:'head'},tile(s.name||s.appId,s.id,'',48),h('div',{class:'grow'},h('div',{class:'name'},s.name||s.appId),h('div',{class:'sub'},`by ${s.username||s.owner} · ${cap(s.category)} · ${when(s.createdAt)}`)),pill('review')),
+        s.description?h('p',{style:{margin:'10px 0 0'}},s.description):'',
+        h('div',{class:'kv',style:{marginTop:'12px'}},h('span',{},'Package'),h('code',{},r.appId||s.appId),h('span',{},'Version'),h('div',{},`${r.version} (code ${r.versionCode})${r.debug?' · debug build':''}`),h('span',{},'Size'),h('div',{},size(r.sizeBytes||0)),
+          h('span',{},'Signing key'),h('code',{},r.certSha256||''),h('span',{},'Permissions'),h('div',{},perms.length?perms.map(p=>{const n=p.split('.').pop();return h('span',{class:'perm'+(SENSITIVE.includes(n)?' hot':'')},n)}):'None')),
+        h('div',{class:'row',style:{marginTop:'14px'}},
+          h('button',{class:'primary small',onclick:async e=>{e.target.disabled=true;try{await api('POST',`/submissions/${s.id}/approve`);toast('Approved. It is being published.');await loadAll();draw()}catch(er){toast(er.message,true);e.target.disabled=false}}},'Approve'),
+          h('button',{class:'danger small',onclick:async()=>{const why=await ask({title:'Reject this app?',text:'The developer sees your reason. The uploaded file is deleted.',confirm:'Reject',danger:true,input:'Reason (optional)'});if(why)try{await api('POST',`/submissions/${s.id}/reject`,{reason:why===true?'':why});toast('Rejected.');await loadAll();draw()}catch(er){toast(er.message,true)}}},'Reject')))}):h('div',{class:'card'},h('p',{class:'sub',style:{margin:0}},'Nothing is waiting for approval.')));
+    const apps=S.apps.map(a=>h('div',{class:'ver'},h('div',{class:'row'},tile(a.name,a.id,a.iconUrl,36),h('div',{class:'grow'},h('div',{class:'name'},a.name),h('div',{class:'sub'},`${a.legacy?'no developer account':'owner '+a.owner} · v${a.latest.version}`)),
+      h('a',{class:'btn ghost small',href:'#/app/'+a.id},'Open'),h('button',{class:'danger small',onclick:async()=>{if(await ask({title:'Take down '+a.name+'?',text:'It is removed from the store and its files are deleted.',confirm:'Take down',danger:true,typeToConfirm:a.name}))
+        try{await api('DELETE','/apps/'+a.id);toast('Taken down.');await loadAll();draw()}catch(er){toast(er.message,true)}}},'Take down'))));
+    const checks=h('div',{}),test=h('button',{class:'ghost small',onclick:async()=>{test.disabled=true;checks.replaceChildren(h('div',{class:'spin'}));
+      try{const r=await api('GET','/selftest');checks.replaceChildren(...r.checks.map(c=>h('div',{class:'check'},h('b',{style:{color:c.ok?'var(--ok)':'var(--bad)'}},c.ok?'✓':'✗'),h('div',{},c.name,c.detail?h('div',{class:'sub'},c.detail):''))))}catch(er){checks.replaceChildren(h('p',{class:'sub'},er.message))}test.disabled=false}},'Run connection check');
+    root.replaceChildren(backLink('#/','Your apps'),h('div',{class:'title'},h('h1',{},'Owner tools')),
+      h('h2',{},'Waiting for approval'),q,h('h2',{style:{marginTop:'28px'}},'All apps in the store'),h('section',{class:'card'},apps.length?apps:h('p',{class:'sub',style:{margin:0}},'No apps.')),
+      h('h2',{style:{marginTop:'28px'}},'Recent uploads'),h('section',{class:'card'},recentSubs.length?recentSubs.map(s=>h('div',{class:'ver'},h('div',{class:'row'},h('div',{class:'grow'},h('b',{},s.name||s.appId||'Untitled'),h('div',{class:'sub'},`${s.username||''} · ${when(s.createdAt)}${s.message&&s.status==='failed'?' · '+s.message:''}`)),pill(s.status)))):h('p',{class:'sub',style:{margin:0}},'Nothing yet.')),
+      h('h2',{style:{marginTop:'28px'}},'Connections'),h('section',{class:'card'},h('p',{class:'sub',style:{marginTop:0}},'Checks Backblaze, GitHub and Curie ID, and shows what to fix if something is wrong.'),test,checks))};
+  draw()}
+
+// ---------- router ----------
+async function route(){
+  clearInterval(S.poll);if(!S.me)return;
+  const root=$('main');if(!root)return;
+  const p=(location.hash||'#/').replace(/^#\/?/,'').split('/').filter(Boolean);
+  window.scrollTo&&window.scrollTo(0,0);
+  if(p[0]==='new')return viewNew(root);
+  if(p[0]==='app'&&p[1])return viewApp(root,decodeURIComponent(p[1]),p[2]||'details');
+  if(p[0]==='review')return viewReview(root);
+  return viewApps(root)}
+async function render(note){
+  const app=$('app');
+  if(!S.me){app.replaceChildren(signInView(note));return}
+  app.replaceChildren(h('div',{class:'wrap',style:{paddingTop:'40px'}},h('div',{class:'spin'})));
+  try{await loadAll()}catch(e){if(S.me)app.replaceChildren(h('div',{class:'wrap',style:{paddingTop:'40px'}},h('div',{class:'card'},e.message),h('button',{class:'primary',style:{marginTop:'12px'},onclick:()=>render()},'Try again')));return}
+  app.replaceChildren(shell(h('div',{})));await route()}
+window.addEventListener('hashchange',route);
+(async function boot(){
+  const s=getSession();
+  if(s&&s.token){try{const r=await capi('/me',{headers:{Authorization:'Bearer '+s.token}});if(r.ok){S.me={...s,displayName:r.data.displayName||s.displayName,username:r.data.username||s.username}}else{saveSession(null)}}catch{S.me=s}}
+  render(!S.me&&s?'Your sign-in expired. Please sign in again.':'')})();
 </script>
 </body>
 </html>
