@@ -35,6 +35,7 @@ data class StoreApp(
     val description: String, val iconUrl: String?, val version: String, val versionCode: Int,
     val apkUrl: String, val sha256: String, val certSha256: String, val size: Long,
     val permissions: List<String>, val debug: Boolean = false,
+    val screenshots: List<String> = emptyList(), val notes: String = "",
 )
 
 class Pal(c: Context) {
@@ -120,6 +121,20 @@ object Icons {
                 img.post { if (img.tag == url) img.setImageBitmap(bmp) }
             } catch (_: Exception) { }
         }.start()
+    }
+}
+
+/** A screenshot in the app page: rounded, loaded from the store's own release downloads. */
+fun Context.shotView(url: String): ImageView {
+    val r = dpf(14)
+    return ImageView(this).apply {
+        scaleType = ImageView.ScaleType.CENTER_CROP
+        background = pill(Color.parseColor("#22888888"), r)
+        outlineProvider = object : ViewOutlineProvider() {
+            override fun getOutline(v: View, o: Outline) = o.setRoundRect(0, 0, v.width, v.height, r)
+        }
+        clipToOutline = true
+        Icons.load(url, this)
     }
 }
 

@@ -171,11 +171,13 @@ class MainActivity : Activity() {
                 StoreApp(
                     o.getString("id"), o.getString("name"), o.getString("author"), o.optString("category", "tools"),
                     o.str("description"),
-                    if (Regex("icons/[\\w.\\-]+").matches(ic)) Cfg.STORE_BASE + ic else null,
+                    if (Regex("icons/[\\w.\\-]+").matches(ic)) Cfg.STORE_BASE + ic else if (ASSET_RE.matches(ic)) ic else null,
                     l.getString("version"), l.getInt("versionCode"), l.getString("apkUrl"),
                     l.getString("sha256"), l.getString("certSha256"), l.getLong("sizeBytes"),
                     (0 until p.length()).map { i -> p.getString(i) },
                     debug = o.optBoolean("debug", false),
+                    screenshots = (o.optJSONArray("screenshots")?.let { a -> (0 until a.length()).map { i -> a.optString(i) } } ?: emptyList()).filter { ASSET_RE.matches(it) }.take(5),
+                    notes = l.str("notes"),
                 )
             }
             runOnUiThread { apps = out; buildChips(); applyFilter() }
@@ -325,7 +327,16 @@ class MainActivity : Activity() {
         statsRow.setPadding(0, dp(14), 0, dp(14))
         sh.add(statsRow, 6)
 
-        if (app.description.isNotBlank()) sh.add(label(app.description, 15f, pal.ink), 4)
+        if (app.screenshots.isNotEmpty()) {
+            val strip = LinearLayout(this)
+            for (u in app.screenshots) strip.addView(shotView(u), LinearLayout.LayoutParams(dp(135), dp(240)).apply { rightMargin = dp(10) })
+            sh.add(HorizontalScrollView(this).apply { isHorizontalScrollBarEnabled = false; addView(strip) }, 12)
+        }
+        if (app.description.isNotBlank()) sh.add(label(app.description, 15f, pal.ink), 12)
+        if (app.notes.isNotBlank()) {
+            sh.add(label("What’s new in ${app.version}", 15f, pal.ink, true), 16)
+            sh.add(label(app.notes, 14f, pal.mute), 6)
+        }
 
         // ratings and reviews
         sh.add(label("Ratings & reviews", 15f, pal.ink, true), 16)

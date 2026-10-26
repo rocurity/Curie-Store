@@ -186,17 +186,17 @@ async function uploadFile(kind,file,onProgress,handle){
   await putFile(s.uploadUrl,file,onProgress,handle);
   await api('POST',`/uploads/${s.id}/complete`);return s.id}
 /** A row that shows one file going up. run() resolves with the upload id, or rejects. */
-function uploader(kind,file){
+function uploader(kind,file,onState){
   const fill=h('i'),bar=h('div',{class:'bar'},fill),st=h('span',{class:'sub'},'Waiting');
   const retry=h('button',{class:'ghost small',style:{display:'none'}},'Try again'),cancel=h('button',{class:'ghost small'},'Cancel');
   const row=h('div',{class:'uprow'},h('div',{class:'grow'},h('div',{class:'name'},file.name),h('div',{class:'sub'},size(file.size)),bar),st,retry,cancel);
   const u={row,id:null,state:'idle',handle:{},
     async run(){
-      u.state='uploading';retry.style.display='none';cancel.style.display='';st.textContent='Uploading 0%';fill.style.width='0%';S.leaving++;
+      u.state='uploading';retry.style.display='none';cancel.style.display='';st.textContent='Uploading 0%';fill.style.width='0%';S.leaving++;if(onState)onState();
       try{u.id=await uploadFile(kind,file,p=>{fill.style.width=Math.round(p*100)+'%';st.textContent='Uploading '+Math.round(p*100)+'%'},u.handle);
         u.state='done';fill.style.width='100%';st.textContent='✓ Uploaded';cancel.style.display='none';return u.id}
       catch(e){u.state='failed';st.textContent=e.message;st.style.color='var(--bad)';retry.style.display='';cancel.style.display='none';throw e}
-      finally{S.leaving--}}};
+      finally{S.leaving--;if(onState)onState()}}};
   retry.onclick=()=>{st.style.color='';u.run().catch(()=>{})};cancel.onclick=()=>{if(u.handle.cancel)u.handle.cancel()};
   return u}
 window.addEventListener('beforeunload',e=>{if(S.leaving>0){e.preventDefault();e.returnValue=''}});
@@ -289,7 +289,7 @@ async function viewApps(root){
   draw();
   S.poll=setInterval(async()=>{if(!document.body.contains(root))return clearInterval(S.poll);
     if(!mySubs().some(active)&&!S.subs.some(s=>s.status==='review'))return;
-    try{const was=JSON.stringify(S.subs.map(s=>[s.id,s.status]));await loadAll();if(JSON.stringify(S.subs.map(s=>[s.id,s.status]))!==was)draw()}catch{}},4000)}
+    try{const was=JSON.stringify(S.subs.map(s=>[s.id,s.status]));await loadAll();if(JSON.stringify(S.subs.map(s=>[s.id,s.status]))!==was)draw()}catch{}},window.CURIE_POLL_MS||4000)}
 
 // ---------- New app ----------
 async function viewNew(root){
@@ -304,8 +304,7 @@ async function viewNew(root){
     let f=file;const bad=checkFile(kind,file);if(bad){toast(bad,true);return}
     if(kind!=='apk')f=await prepImage(kind,file);
     const bad2=checkFile(kind,f);if(bad2){toast(bad2,true);return}
-    const u=uploader(kind,f);slot(u);box.append(u.row);refresh();u.run().then(refresh,refresh);
-    const cancel=u.row.querySelector('button.ghost:last-child');if(cancel)cancel.addEventListener('click',()=>setTimeout(refresh,0));return u}
+    const u=uploader(kind,f,refresh);slot(u);box.append(u.row);u.run().catch(()=>{});return u}
   apkBox.append(dropZone({label:'Drop your .apk here, or click to choose',hint:'Up to 150 MB. It must be signed.',accept:'.apk',onFiles:async([f])=>{
     if(W.apk&&W.apk.state==='uploading')return toast('Wait for the current upload to finish.',true);
     apkBox.querySelectorAll('.uprow').forEach(x=>x.remove());await addFile('apk',f,apkBox,u=>W.apk=u)}}));
@@ -353,7 +352,7 @@ async function viewApp(root,id,tab='details'){
     let up=null;const go=h('button',{class:'primary',disabled:true},'Publish release');
     const sync=()=>{go.disabled=!(up&&up.state==='done')||!!pending};
     const zone=dropZone({label:'Drop the new .apk here',hint:'Same signing key as before, and a higher version code.',accept:'.apk',onFiles:async([f])=>{
-      const bad=checkFile('apk',f);if(bad)return toast(bad,true);box.querySelectorAll('.uprow').forEach(x=>x.remove());up=uploader('apk',f);box.append(up.row);sync();up.run().then(sync,sync)}});
+      const bad=checkFile('apk',f);if(bad)return toast(bad,true);box.querySelectorAll('.uprow').forEach(x=>x.remove());up=uploader('apk',f,sync);box.append(up.row);up.run().catch(()=>{})}});
     go.onclick=async()=>{go.disabled=true;go.textContent='Publishing…';
       try{await api('POST','/submissions',{targetApp:id,apkUpload:up.id,category:app.category,notes:notes.value.trim()});toast('Submitted. We are checking the new release.');await refreshApps()}catch(e){toast(e.message,true);go.textContent='Publish release';sync()}};
     body.append(h('section',{class:'card'},h('h2',{},'New release'),pending?h('div',{class:'note'},`A release is already ${STATUS[pending.status].toLowerCase()}. You can upload another when it finishes.`):'',zone,box,h('label',{class:'f'},'Release notes',counted(notes,500)),notes,h('div',{class:'row',style:{marginTop:'14px'}},go)));
@@ -381,9 +380,9 @@ async function viewApp(root,id,tab='details'){
   if(tab==='stats'){
     const box=h('section',{class:'card'},h('div',{class:'spin'}));body.append(box);
     try{const [s,rv]=await Promise.all([fetch(`${CFG.STORE}/apps/${encodeURIComponent(id)}`).then(r=>r.json()),fetch(`${CFG.STORE}/apps/${encodeURIComponent(id)}/reviews?limit=20`).then(r=>r.json())]);
-      box.replaceChildren(h('div',{class:'stats',style:{marginBottom:0}},h('div',{class:'stat'},h('b',{},s.ratings?'★ '+s.rating.toFixed(1):'-'),h('span',{},s.ratings?s.ratings+' rating'+(s.ratings>1?'s':''):'No ratings yet')),
+      box.replaceChildren(h('div',{},h('div',{class:'stats',style:{marginBottom:0}},h('div',{class:'stat'},h('b',{},s.ratings?'★ '+s.rating.toFixed(1):'-'),h('span',{},s.ratings?s.ratings+' rating'+(s.ratings>1?'s':''):'No ratings yet')),
         h('div',{class:'stat'},h('b',{},String(s.installs||0)),h('span',{},'Installs')),h('div',{class:'stat'},h('b',{},String(app.versions.length)),h('span',{},'Releases'))),
-        h('h2',{style:{marginTop:'20px'}},'Reviews'),(rv.reviews||[]).length?(rv.reviews).map(x=>h('div',{class:'ver'},h('b',{},x.name),h('span',{class:'sub'},'  '+'★'.repeat(x.stars)),x.review?h('p',{style:{margin:'4px 0 0'}},x.review):'')):h('p',{class:'sub'},'No reviews yet.'))}
+        h('h2',{style:{marginTop:'20px'}},'Reviews'),(rv.reviews||[]).length?(rv.reviews).map(x=>h('div',{class:'ver'},h('b',{},x.name),h('span',{class:'sub'},'  '+'★'.repeat(x.stars)),x.review?h('p',{style:{margin:'4px 0 0'}},x.review):'')):h('p',{class:'sub'},'No reviews yet.')))}
     catch{box.replaceChildren(h('p',{class:'sub'},'Could not load the numbers right now.'))}}
 
   if(tab==='danger'){
@@ -413,7 +412,8 @@ async function viewReview(root){
       h('h2',{},'Waiting for approval'),q,h('h2',{style:{marginTop:'28px'}},'All apps in the store'),h('section',{class:'card'},apps.length?apps:h('p',{class:'sub',style:{margin:0}},'No apps.')),
       h('h2',{style:{marginTop:'28px'}},'Recent uploads'),h('section',{class:'card'},recentSubs.length?recentSubs.map(s=>h('div',{class:'ver'},h('div',{class:'row'},h('div',{class:'grow'},h('b',{},s.name||s.appId||'Untitled'),h('div',{class:'sub'},`${s.username||''} · ${when(s.createdAt)}${s.message&&s.status==='failed'?' · '+s.message:''}`)),pill(s.status)))):h('p',{class:'sub',style:{margin:0}},'Nothing yet.')),
       h('h2',{style:{marginTop:'28px'}},'Connections'),h('section',{class:'card'},h('p',{class:'sub',style:{marginTop:0}},'Checks Backblaze, GitHub and Curie ID, and shows what to fix if something is wrong.'),test,checks))};
-  draw()}
+  draw();
+  loadAll().then(()=>{if(document.body.contains(root)&&location.hash.startsWith('#/review'))draw()}).catch(()=>{})}
 
 // ---------- router ----------
 async function route(){

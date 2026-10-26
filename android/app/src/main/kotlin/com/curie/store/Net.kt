@@ -12,6 +12,9 @@ object Cfg {
     const val CURIE_SIGNUP = "https://curie-id-c579e.web.app"
 }
 
+/** Links to files in the store's own public releases (icons and screenshots of uploaded apps). */
+val ASSET_RE = Regex("https://github\\.com/[\\w.-]+/[\\w.-]+/releases/download/app-[^/]+/[^/]+")
+
 class ApiResult(val code: Int, val json: JSONObject) {
     val ok: Boolean get() = code in 200..299
     val error: String get() = json.str("error")

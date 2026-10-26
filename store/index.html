@@ -61,6 +61,9 @@ code{display:block;font:12px/1.5 ui-monospace,monospace;color:var(--mute);word-b
 .spin{width:28px;height:28px;border:3px solid var(--line);border-top-color:var(--blue);border-radius:50%;animation:sp 1s linear infinite;margin:14px 0}
 @keyframes sp{to{transform:rotate(360deg)}}
 @media(prefers-reduced-motion:reduce){.spin{animation:none}}
+.gallery{display:flex;gap:10px;overflow-x:auto;margin:14px 0;scroll-snap-type:x mandatory;padding-bottom:6px}
+.gallery img{height:240px;border-radius:14px;flex:none;scroll-snap-align:start;background:var(--line)}
+.news{margin:4px 0 0;white-space:pre-wrap;overflow-wrap:anywhere}
 .rate{margin-top:10px}
 .starrow{display:flex;gap:4px;margin-bottom:10px}
 .st{background:none;border:0;font-size:1.7rem;line-height:1;color:var(--blue);cursor:pointer;padding:2px}
@@ -96,7 +99,9 @@ function h(t,at={},...kids){const e=document.createElement(t);
   for(const c of kids.flat())e.append(c);return e}
 const mb=b=>b>0?(b/1048576).toFixed(b<10485760?1:0)+' MB':'—';
 const safeApk=u=>/^https:\/\/github\.com\//.test(u)?u:'#';
-const safeIcon=u=>/^icons\/[\w.\-]+$/.test(u||'')?u:'';
+const ASSET=/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\/releases\/download\/app-[^/]+\/[^/]+$/;
+const safeIcon=u=>(/^icons\/[\w.\-]+$/.test(u||'')||ASSET.test(u||''))?u:'';
+const safeShots=a=>(Array.isArray(a.screenshots)?a.screenshots:[]).filter(u=>ASSET.test(u)).slice(0,5);
 const hue=s=>[...s].reduce((a,c)=>(a*31+c.charCodeAt(0))%360,7);
 function icon(a){
   const letter=()=>{const e=h('div',{class:'icon','aria-hidden':'true'},a.name[0].toUpperCase());
@@ -180,7 +185,9 @@ function show(a){
     install,
     h('div',{class:'stats'},h('div',{},rB,rS),h('div',{},iB,h('span',{},'Installs')),
       h('div',{},h('b',{},l.version),h('span',{},'Version')),h('div',{},h('b',{},mb(l.sizeBytes)),h('span',{},'Size'))),
+    safeShots(a).length?h('div',{class:'gallery'},safeShots(a).map((u,i)=>h('img',{src:u,alt:'Screenshot '+(i+1),loading:'lazy'}))):'',
     a.description?h('p',{},a.description):'',
+    ...(l.notes?[h('h3',{},'What’s new in '+l.version),h('p',{class:'news'},l.notes)]:[]),
     h('h3',{},'Ratings & reviews'),form,revs,
     h('h3',{},'Permissions'),
     perms.length?h('div',{class:'perms'},perms.map(p=>h('span',{},p))):h('div',{class:'sub'},'None'),
