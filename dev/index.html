@@ -160,6 +160,10 @@ const mine=()=>S.apps.filter(a=>a.owner===S.me.curieId);
 const mySubs=()=>S.subs.filter(s=>!s.owner||s.owner===S.me.curieId);
 const recent=s=>Date.now()-s.updatedAt<14*86400000;
 const active=s=>['queued','checking','review','publishing'].includes(s.status);
+const stalled=s=>active(s)&&s.status!=='review'&&Date.now()-s.updatedAt>5*60000;
+async function retry(s,btn){btn.disabled=true;try{await api('POST',`/submissions/${s.id}/retry`);toast('Trying again…');await loadAll();await route()}catch(e){toast(e.message,true);btn.disabled=false}}
+const stallNote=s=>stalled(s)?h('div',{class:'note warn'},'This is taking longer than usual. ',h('button',{class:'ghost small',onclick:e=>retry(s,e.target)},'Try again')):'';
+const liveMsg=s=>active(s)&&s.status!=='review'&&s.message&&!/^(Publishing|Checking the app)$/.test(s.message)?h('div',{class:'sub',style:{marginTop:'8px'}},s.message):'';
 
 // ---------- uploads (straight to the private bucket; progress; retry) ----------
 function checkFile(kind,f){
@@ -267,13 +271,13 @@ function appCard(a){
   const info=[cap(a.category),'v'+a.latest.version,size(a.latest.sizeBytes)];if(st&&st.ratings)info.push('★ '+st.rating.toFixed(1));if(st&&st.installs)info.push(st.installs+' installs');
   return h('article',{class:'card'},h('div',{class:'head'},tile(a.name,a.id,a.iconUrl,56),
       h('div',{class:'grow'},h('div',{class:'name'},a.name),h('div',{class:'sub'},info.join(' · '))),pending?pill(pending.status):pill('live')),
-    ...subs.map(s=>h('div',{class:'note'+(s.status==='failed'?' bad':'')},s.status==='failed'?`New release failed: ${s.message}`:`New release ${s.notes?'“'+s.notes.slice(0,40)+'”':''} is ${STATUS[s.status].toLowerCase()}…`)),
+    ...subs.map(s=>h('div',{class:'note'+(s.status==='failed'?' bad':'')},s.status==='failed'?`New release failed: ${s.message}`:`New release ${s.notes?'“'+s.notes.slice(0,40)+'”':''} is ${STATUS[s.status].toLowerCase()}…`,stalled(s)?[' This is taking longer than usual. ',h('button',{class:'ghost small',onclick:e=>retry(s,e.target)},'Try again')]:'')),
     a.debug?h('div',{class:'note warn'},'This is a debug build. It is listed with a Debug label.'):'',
     h('div',{class:'row',style:{marginTop:'14px'}},h('a',{class:'btn primary small',href:'#/app/'+a.id},'Manage'),h('a',{class:'btn ghost small',href:'../store/'},'View in store')))}
 function subCard(s){
   const name=s.name||s.appId||'New app';
   return h('article',{class:'card'},h('div',{class:'head'},tile(name,s.id,'',56),h('div',{class:'grow'},h('div',{class:'name'},name),h('div',{class:'sub'},cap(s.category)+' · '+when(s.createdAt))),pill(s.status)),
-    track(s.status),s.status==='review'?h('div',{class:'note'},'The store owner looks at a developer’s first app before it goes live. You will see it here as soon as it is approved.'):'',
+    track(s.status),liveMsg(s),stallNote(s),s.status==='review'?h('div',{class:'note'},'The store owner looks at a developer’s first app before it goes live. You will see it here as soon as it is approved.'):'',
     s.status==='failed'?h('div',{class:'note bad'},s.message||'The check failed.'):'',
     s.status==='failed'?h('div',{class:'row',style:{marginTop:'12px'}},h('a',{class:'btn ghost small',href:'#/new'},'Upload again')):'')}
 async function viewApps(root){
@@ -410,7 +414,7 @@ async function viewReview(root){
       try{const r=await api('GET','/selftest');checks.replaceChildren(...r.checks.map(c=>h('div',{class:'check'},h('b',{style:{color:c.ok?'var(--ok)':'var(--bad)'}},c.ok?'✓':'✗'),h('div',{},c.name,c.detail?h('div',{class:'sub'},c.detail):''))))}catch(er){checks.replaceChildren(h('p',{class:'sub'},er.message))}test.disabled=false}},'Run connection check');
     root.replaceChildren(backLink('#/','Your apps'),h('div',{class:'title'},h('h1',{},'Owner tools')),
       h('h2',{},'Waiting for approval'),q,h('h2',{style:{marginTop:'28px'}},'All apps in the store'),h('section',{class:'card'},apps.length?apps:h('p',{class:'sub',style:{margin:0}},'No apps.')),
-      h('h2',{style:{marginTop:'28px'}},'Recent uploads'),h('section',{class:'card'},recentSubs.length?recentSubs.map(s=>h('div',{class:'ver'},h('div',{class:'row'},h('div',{class:'grow'},h('b',{},s.name||s.appId||'Untitled'),h('div',{class:'sub'},`${s.username||''} · ${when(s.createdAt)}${s.message&&s.status==='failed'?' · '+s.message:''}`)),pill(s.status)))):h('p',{class:'sub',style:{margin:0}},'Nothing yet.')),
+      h('h2',{style:{marginTop:'28px'}},'Recent uploads'),h('section',{class:'card'},recentSubs.length?recentSubs.map(s=>h('div',{class:'ver'},h('div',{class:'row'},h('div',{class:'grow'},h('b',{},s.name||s.appId||'Untitled'),h('div',{class:'sub'},`${s.username||''} · ${when(s.createdAt)}${s.message&&['failed','queued','checking','publishing'].includes(s.status)?' · '+s.message:''}`)),stalled(s)?h('button',{class:'ghost small',onclick:e=>retry(s,e.target)},'Try again'):'',pill(s.status)))):h('p',{class:'sub',style:{margin:0}},'Nothing yet.')),
       h('h2',{style:{marginTop:'28px'}},'Connections'),h('section',{class:'card'},h('p',{class:'sub',style:{marginTop:0}},'Checks Backblaze, GitHub and Curie ID, and shows what to fix if something is wrong.'),test,checks))};
   draw();
   loadAll().then(()=>{if(document.body.contains(root)&&location.hash.startsWith('#/review'))draw()}).catch(()=>{})}
