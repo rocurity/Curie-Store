@@ -1,0 +1,64 @@
+name: Publish uploads
+
+# Runs after an upload was checked (and, for a developer's first app, approved by the store owner).
+# It moves the files from the private mailbox into the app's public GitHub release.
+# It never opens or runs any uploaded file.
+on:
+  repository_dispatch:
+    types: [publish]
+  workflow_dispatch:
+    inputs:
+      id:
+        description: Submission id to publish again
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: publish-${{ github.event.client_payload.id || inputs.id }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SUBMISSION_ID: ${{ github.event.client_payload.id || inputs.id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # has the secret, no GitHub token
+      - name: Get the plan
+        env:
+          STORE_API_URL: ${{ vars.STORE_API_URL }}
+          INTERNAL_SECRET: ${{ secrets.INTERNAL_SECRET }}
+        run: python3 tools/upload_publish.py fetch --id "$SUBMISSION_ID" --out "$RUNNER_TEMP/plan.json"
+
+      # no secret, no GitHub token
+      - name: Download the files
+        env:
+          B2_ENDPOINT: ${{ vars.B2_ENDPOINT }}
+        run: python3 tools/upload_publish.py download --info "$RUNNER_TEMP/plan.json" --dir "$RUNNER_TEMP/files" --files "$RUNNER_TEMP/files.json"
+
+      # GitHub token only, no secret
+      - name: Put the files in the public release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: python3 tools/upload_publish.py release --info "$RUNNER_TEMP/plan.json" --dir "$RUNNER_TEMP/files" --files "$RUNNER_TEMP/files.json"
+
+      # has the secret, no GitHub token
+      - name: Report that the files are public
+        env:
+          STORE_API_URL: ${{ vars.STORE_API_URL }}
+          INTERNAL_SECRET: ${{ secrets.INTERNAL_SECRET }}
+        run: python3 tools/upload_publish.py report --id "$SUBMISSION_ID" --files "$RUNNER_TEMP/files.json"
+
+      - name: Tell the developer if publishing broke
+        if: failure()
+        env:
+          STORE_API_URL: ${{ vars.STORE_API_URL }}
+          INTERNAL_SECRET: ${{ secrets.INTERNAL_SECRET }}
+        run: python3 tools/upload_publish.py fail --id "$SUBMISSION_ID" --message "Publishing could not finish. Please upload again, or tell the store owner."
