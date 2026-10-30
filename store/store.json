@@ -48,6 +48,81 @@
       ],
       "source": "upload",
       "debug": true
+    },
+    {
+      "id": "com.insaka.lite",
+      "name": "INSAKA",
+      "author": "peterroc",
+      "owner": "627507658c",
+      "repo": "",
+      "description": "LETS talk the zambian way our own whatsapp like app",
+      "category": "social",
+      "icon": "https://github.com/rocurity/Curie-Store/releases/download/app-com.insaka.lite/icon-14e36fa3.png",
+      "screenshots": [],
+      "latest": {
+        "version": "0.6",
+        "versionCode": 6,
+        "apkUrl": "https://github.com/rocurity/Curie-Store/releases/download/app-com.insaka.lite/com.insaka.lite-6.apk",
+        "sha256": "8ca4b2eec0111d1a4ca48c53eb9b01edf8f1fb4fb916528ee4e1381a1e3ce165",
+        "certSha256": "00e232ab73e29b51bba3dd76eece696a32fba983bf1af655e3c1a731a879cbef",
+        "sizeBytes": 15202875,
+        "permissions": [
+          "android.permission.ACCESS_NETWORK_STATE",
+          "android.permission.CAMERA",
+          "android.permission.FOREGROUND_SERVICE",
+          "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+          "android.permission.INTERNET",
+          "android.permission.MODIFY_AUDIO_SETTINGS",
+          "android.permission.POST_NOTIFICATIONS",
+          "android.permission.READ_EXTERNAL_STORAGE",
+          "android.permission.READ_MEDIA_IMAGES",
+          "android.permission.RECORD_AUDIO",
+          "android.permission.USE_FULL_SCREEN_INTENT",
+          "android.permission.VIBRATE",
+          "android.permission.WAKE_LOCK",
+          "android.permission.WRITE_EXTERNAL_STORAGE",
+          "com.google.android.c2dm.permission.RECEIVE",
+          "com.google.android.providers.gsf.permission.READ_GSERVICES",
+          "com.insaka.lite.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+        ],
+        "notes": "voice notes,calls,groups status and much more.",
+        "date": "2026-10-30",
+        "debug": true
+      },
+      "versions": [
+        {
+          "version": "0.6",
+          "versionCode": 6,
+          "apkUrl": "https://github.com/rocurity/Curie-Store/releases/download/app-com.insaka.lite/com.insaka.lite-6.apk",
+          "sha256": "8ca4b2eec0111d1a4ca48c53eb9b01edf8f1fb4fb916528ee4e1381a1e3ce165",
+          "certSha256": "00e232ab73e29b51bba3dd76eece696a32fba983bf1af655e3c1a731a879cbef",
+          "sizeBytes": 15202875,
+          "permissions": [
+            "android.permission.ACCESS_NETWORK_STATE",
+            "android.permission.CAMERA",
+            "android.permission.FOREGROUND_SERVICE",
+            "android.permission.FOREGROUND_SERVICE_MICROPHONE",
+            "android.permission.INTERNET",
+            "android.permission.MODIFY_AUDIO_SETTINGS",
+            "android.permission.POST_NOTIFICATIONS",
+            "android.permission.READ_EXTERNAL_STORAGE",
+            "android.permission.READ_MEDIA_IMAGES",
+            "android.permission.RECORD_AUDIO",
+            "android.permission.USE_FULL_SCREEN_INTENT",
+            "android.permission.VIBRATE",
+            "android.permission.WAKE_LOCK",
+            "android.permission.WRITE_EXTERNAL_STORAGE",
+            "com.google.android.c2dm.permission.RECEIVE",
+            "com.google.android.providers.gsf.permission.READ_GSERVICES",
+            "com.insaka.lite.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION"
+          ],
+          "notes": "voice notes,calls,groups status and much more.",
+          "date": "2026-10-30",
+          "debug": true
+        }
+      ],
+      "source": "upload",
+      "debug": true
     }
   ]
 }
