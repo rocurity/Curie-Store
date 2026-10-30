@@ -1,5 +1,53 @@
 {
   "schema": 1,
-  "updated": "2026-10-19",
-  "apps": []
+  "updated": "2026-10-30",
+  "apps": [
+    {
+      "id": "com.curie.store",
+      "name": "Curie Store",
+      "author": "peterroc",
+      "owner": "627507658c",
+      "repo": "",
+      "description": "this is the appstore made simple find andriod apps and Erub apps",
+      "category": "tools",
+      "icon": "",
+      "screenshots": [],
+      "latest": {
+        "version": "0.1.0",
+        "versionCode": 1,
+        "apkUrl": "https://github.com/rocurity/Curie-Store/releases/download/app-com.curie.store/com.curie.store-1.apk",
+        "sha256": "9d45ad24f121d1b75d021cc3353a4e6b6435a1206eb654d9bb2a2690c070c011",
+        "certSha256": "00e232ab73e29b51bba3dd76eece696a32fba983bf1af655e3c1a731a879cbef",
+        "sizeBytes": 883599,
+        "permissions": [
+          "android.permission.INTERNET",
+          "android.permission.QUERY_ALL_PACKAGES",
+          "android.permission.REQUEST_INSTALL_PACKAGES"
+        ],
+        "notes": "but this version of the store is mainly a beta version and only android app are available for now",
+        "date": "2026-10-30",
+        "debug": true
+      },
+      "versions": [
+        {
+          "version": "0.1.0",
+          "versionCode": 1,
+          "apkUrl": "https://github.com/rocurity/Curie-Store/releases/download/app-com.curie.store/com.curie.store-1.apk",
+          "sha256": "9d45ad24f121d1b75d021cc3353a4e6b6435a1206eb654d9bb2a2690c070c011",
+          "certSha256": "00e232ab73e29b51bba3dd76eece696a32fba983bf1af655e3c1a731a879cbef",
+          "sizeBytes": 883599,
+          "permissions": [
+            "android.permission.INTERNET",
+            "android.permission.QUERY_ALL_PACKAGES",
+            "android.permission.REQUEST_INSTALL_PACKAGES"
+          ],
+          "notes": "but this version of the store is mainly a beta version and only android app are available for now",
+          "date": "2026-10-30",
+          "debug": true
+        }
+      ],
+      "source": "upload",
+      "debug": true
+    }
+  ]
 }
