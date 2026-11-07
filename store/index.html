@@ -204,76 +204,58 @@ function chips(){
 fetch('store.json').then(r=>r.json()).then(s=>{apps=s.apps;chips();render();loadWish()})
   .catch(()=>$('grid').append(h('p',{class:'empty'},'Store unavailable')));
 $('q').oninput=render;
-/* ---- Curie ID sign-in ---- */
-const CURIE_API='https://rocurity--40be21cebf4011f199401607ee4eb77e.web.val.run',CURIE_SIGNUP='https://curie-id-c579e.web.app';
+/* ---- Curie ID sign-in: the store sends you to Curie ID and back with a one-time code (OAuth + PKCE) ---- */
+const CURIE_API='https://curie-id.rocurity.workers.dev',CURIE_PAGES='https://curie-id.pages.dev',CURIE_CLIENT='curie-store';
+const CURIE_REDIRECT=location.origin+location.pathname;
 const cid={me:null,alive:false};
-async function capi(path,opts={}){
-  const r=await fetch(CURIE_API+path,{cache:'no-store',...opts,headers:{'Content-Type':'text/plain',...(opts.headers||{})}});
-  return{status:r.status,ok:r.ok,data:await r.json().catch(()=>({}))}}
-function cidDevice(){try{let i=localStorage.getItem('curieDeviceId');if(!i){i='curie-store-web-'+crypto.randomUUID();localStorage.setItem('curieDeviceId',i)}return i}catch{return 'curie-store-web-'+crypto.randomUUID()}}
+const b64u=b=>btoa(String.fromCharCode(...new Uint8Array(b))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+const rndU=n=>b64u(crypto.getRandomValues(new Uint8Array(n)));
+const s256=async t=>b64u(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t)));
 function cidSave(v){try{v?localStorage.setItem('curie-session',JSON.stringify(v)):localStorage.removeItem('curie-session')}catch{}}
 function cidLoad(){try{return JSON.parse(localStorage.getItem('curie-session')||'null')}catch{return null}}
 function cidPaint(){const b=$('acct');
   if(cid.me){b.className='acct on';b.textContent=(cid.me.displayName||cid.me.username||'C')[0].toUpperCase();b.setAttribute('aria-label','Account')}
   else{b.className='acct';b.textContent='Sign in';b.setAttribute('aria-label','Sign in')}}
-async function cidDone(d0){
-  cid.me={token:d0.accessToken,curieId:d0.curieId};
-  try{const r=await capi('/me',{headers:{Authorization:'Bearer '+d0.accessToken}});
-    if(r.ok){cid.me.displayName=r.data.displayName;cid.me.username=r.data.username}}catch{}
-  cidSave(cid.me);cidPaint();$('auth').close();afterAuth()}
 function cidSignIn(){
-  const d=$('auth');cid.alive=true;
-  const id=h('input',{placeholder:'Curie ID or username',autocomplete:'username',autocapitalize:'none',spellcheck:'false'});
-  const pw=h('input',{type:'password',placeholder:'Password',autocomplete:'current-password'});
-  const err=h('div',{class:'err',role:'alert'}),btn=h('button',{class:'primary wide'},'Sign in');
-  const go=async()=>{
-    const identifier=id.value.trim().toLowerCase();
-    if(!identifier||!pw.value){err.textContent='Enter your Curie ID or username, and password';return}
-    btn.disabled=true;btn.textContent='Signing in';err.textContent='';
-    try{
-      const r=await capi('/login',{method:'POST',body:JSON.stringify({identifier,password:pw.value,deviceId:cidDevice()})});
-      pw.value='';
-      if(r.status===202)return cidWait(r.data);
-      if(!r.ok)throw new Error(r.data.error||'Sign-in failed');
-      await cidDone(r.data);
-    }catch(e){err.textContent=e.message;btn.disabled=false;btn.textContent='Sign in'}};
-  btn.onclick=go;pw.onkeydown=e=>{if(e.key==='Enter')go()};
-  d.replaceChildren(h('h2',{},'Sign in with Curie ID'),id,pw,err,btn,h('a',{class:'link',href:CURIE_SIGNUP,rel:'noopener'},'Create a Curie ID'));
-  d.showModal()}
-function cidWait(info){
-  const d=$('auth'),err=h('div',{class:'err',role:'alert'});
-  d.replaceChildren(h('h2',{},'Approve sign-in'),h('div',{class:'spin'}),
-    h('div',{class:'wait'},'Approve this sign-in on a device where you are already signed in to Curie ID.'),err,
-    info.emailFallback?h('button',{class:'ghost wide',onclick:()=>cidEmail(info)},'Email me a code instead'):'');
-  if(info.autoEmail){cidEmail(info);return}
-  const t0=Date.now();
-  const poll=async()=>{
-    if(!cid.alive)return;
-    try{const r=await capi('/login/status/'+info.approvalId);
-      if(r.data.status==='approved')return cidDone(r.data);
-      if(r.data.status==='denied'){err.textContent='The sign-in was denied or expired.';return}}catch{}
-    if(Date.now()-t0>300000){err.textContent='The request expired. Close this and try again.';return}
-    setTimeout(poll,2500)};
-  poll()}
-async function cidEmail(info){
-  const d=$('auth'),code=h('input',{placeholder:'6-digit code',inputmode:'numeric',autocomplete:'one-time-code',maxlength:'6'});
-  const err=h('div',{class:'err',role:'alert'}),msg=h('div',{class:'wait'},'Sending code'),btn=h('button',{class:'primary wide'},'Verify');
-  d.replaceChildren(h('h2',{},'Enter code'),msg,code,err,btn);
-  const s=await capi('/login/email-code/send',{method:'POST',body:JSON.stringify({approvalId:info.approvalId})}).catch(()=>null);
-  msg.textContent=s&&s.ok?'We sent a code to '+(s.data.maskedEmail||'your email'):(s&&s.data.error)||'Could not send the code';
-  const go=async()=>{btn.disabled=true;err.textContent='';
-    const r=await capi('/login/email-code/verify',{method:'POST',body:JSON.stringify({approvalId:info.approvalId,code:code.value.trim()})}).catch(()=>null);
-    if(r&&r.ok)return cidDone(r.data);
-    err.textContent=(r&&r.data.error)||'Could not verify the code';btn.disabled=false};
-  btn.onclick=go;code.onkeydown=e=>{if(e.key==='Enter')go()}}
+  const verifier=rndU(48),state=rndU(16);
+  sessionStorage.setItem('curieStore',JSON.stringify({verifier,state}));
+  s256(verifier).then(challenge=>{
+    const u=new URL(CURIE_PAGES+'/authorize.html');
+    u.search=new URLSearchParams({client_id:CURIE_CLIENT,redirect_uri:CURIE_REDIRECT,
+      code_challenge:challenge,code_challenge_method:'S256',state}).toString();
+    location.href=u.toString()});
+}
+async function cidFinish(code,state){
+  const saved=JSON.parse(sessionStorage.getItem('curieStore')||'null');
+  sessionStorage.removeItem('curieStore');
+  if(!saved||saved.state!==state)throw new Error('This sign-in did not start from this store. Please try again.');
+  const t=await fetch(CURIE_API+'/oauth/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:new URLSearchParams({grant_type:'authorization_code',code,redirect_uri:CURIE_REDIRECT,client_id:CURIE_CLIENT,code_verifier:saved.verifier})})
+    .then(r=>r.json().then(d=>({ok:r.ok,d})));
+  if(!t.ok)throw new Error(t.d.error_description||'Sign-in failed');
+  const me=await fetch(CURIE_API+'/oauth/userinfo',{headers:{Authorization:'Bearer '+t.d.access_token}}).then(r=>r.json());
+  cid.me={token:t.d.access_token,curieId:me.sub,displayName:me.name,username:me.preferred_username};
+  cidSave(cid.me);
+}
 function cidAccount(){
   const d=$('auth'),m=cid.me;
   d.replaceChildren(h('h2',{},m.displayName||'Curie ID'),h('div',{class:'wait'},(m.username?'@'+m.username+' · ':'')+m.curieId),
-    h('div',{class:'row'},h('a',{class:'ghost',href:CURIE_SIGNUP,rel:'noopener'},'Manage'),
-      h('button',{class:'primary',onclick:()=>{cid.me=null;cidSave(null);cidPaint();d.close();afterAuth()}},'Sign out')));
+    h('div',{class:'row'},h('a',{class:'ghost',href:CURIE_PAGES+'/account.html',rel:'noopener'},'Manage'),
+      h('button',{class:'primary',onclick:async()=>{
+        try{await fetch(CURIE_API+'/auth/logout',{method:'POST',headers:{Authorization:'Bearer '+m.token}})}catch{}
+        cid.me=null;cidSave(null);cidPaint();d.close();afterAuth()}},'Sign out')));
   d.showModal()}
-cid.me=cidLoad();cidPaint();
-if(cid.me)capi('/me',{headers:{Authorization:'Bearer '+cid.me.token}}).then(r=>{if(r.status===401){cid.me=null;cidSave(null);cidPaint()}afterAuth()}).catch(()=>{});
+
+// Coming back from Curie ID with a code, or a normal visit
+const qp=new URLSearchParams(location.search);
+if(qp.get('code')){
+  history.replaceState(null,'',location.pathname);
+  cidFinish(qp.get('code'),qp.get('state')||'')
+    .then(()=>{cidPaint();afterAuth()})
+    .catch(e=>{alert(e.message);cidPaint()});
+}else{
+  cid.me=cidLoad();cidPaint();
+}
 $('acct').onclick=()=>cid.me?cidAccount():cidSignIn();
 $('auth').addEventListener('close',()=>{cid.alive=false});
 $('dlg').addEventListener('close',()=>{sheetRefresh=null});
