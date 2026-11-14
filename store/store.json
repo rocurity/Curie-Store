@@ -179,10 +179,29 @@
       "type": "rcp",
       "description": "Sample Curie app: input, counter and file save/load.",
       "latest": {
+        "version": "1.0.1",
+        "rcpUrl": "apps/com.curie.hello-1.0.1.rcp",
+        "sha256": "f608d6921445df85a8cd3f5468d063f0a79dd632cd60a527878b570587026182",
+        "sizeBytes": 2028,
+        "permissions": [
+          "storage"
+        ],
+        "certSha256": "unsigned",
+        "notes": ""
+      }
+    },
+    {
+      "id": "app.curie.notes",
+      "name": "Curie Notes",
+      "author": "Curie",
+      "category": "tools",
+      "type": "rcp",
+      "description": "Colourful notes and to-do list.",
+      "latest": {
         "version": "1.0.0",
-        "rcpUrl": "apps/com.curie.hello-1.0.0.rcp",
-        "sha256": "71117c6e3fd35d71fb3535db970fd698100d096b7738f300c1e92252d228b7ca",
-        "sizeBytes": 996,
+        "rcpUrl": "apps/app.curie.notes-1.0.0.rcp",
+        "sha256": "c367b9f6e026394dbe508fd45a0288b7d94d739ec796f5df28dbbdacf0256435",
+        "sizeBytes": 13781,
         "permissions": [
           "storage"
         ],
