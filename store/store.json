@@ -1,6 +1,6 @@
 {
   "schema": 1,
-  "updated": "2026-11-02",
+  "updated": "2026-11-14",
   "apps": [
     {
       "id": "com.curie.store",
@@ -170,6 +170,25 @@
       ],
       "source": "upload",
       "debug": true
+    },
+    {
+      "id": "com.curie.hello",
+      "name": "Hello Curie",
+      "author": "Curie",
+      "category": "tools",
+      "type": "rcp",
+      "description": "Sample Curie app: input, counter and file save/load.",
+      "latest": {
+        "version": "1.0.0",
+        "rcpUrl": "apps/com.curie.hello-1.0.0.rcp",
+        "sha256": "71117c6e3fd35d71fb3535db970fd698100d096b7738f300c1e92252d228b7ca",
+        "sizeBytes": 996,
+        "permissions": [
+          "storage"
+        ],
+        "certSha256": "unsigned",
+        "notes": ""
+      }
     }
   ]
 }
